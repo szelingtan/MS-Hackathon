@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Earth Kindness Design System - Nature & Growth Inspired */
+
+@layer base {
+  :root {
+    /* Earth tones - warm and natural */
+    --background: 45 20% 97%;
+    --foreground: 25 30% 15%;
+
+    --card: 42 25% 95%;
+    --card-foreground: 25 30% 15%;
+
+    --popover: 42 25% 95%;
+    --popover-foreground: 25 30% 15%;
+
+    /* Sage green primary - main brand color */
+    --primary: 140 30% 35%;
+    --primary-foreground: 45 20% 97%;
+
+    /* Warm earth secondary */
+    --secondary: 35 25% 85%;
+    --secondary-foreground: 25 30% 15%;
+
+    /* Soft muted tones */
+    --muted: 40 15% 90%;
+    --muted-foreground: 25 20% 45%;
+
+    /* Warm accent - terracotta inspired */
+    --accent: 25 40% 70%;
+    --accent-foreground: 45 20% 97%;
+
+    /* Warm destructive */
+    --destructive: 15 75% 50%;
+    --destructive-foreground: 45 20% 97%;
+
+    /* Natural borders */
+    --border: 40 15% 85%;
+    --input: 40 15% 85%;
+    --ring: 140 30% 35%;
+
+    /* Growth colors for plant game */
+    --plant-base: 120 25% 40%;
+    --plant-growth: 110 40% 50%;
+    --plant-bloom: 100 50% 60%;
+    --water-droplet: 200 80% 70%;
+    --earth-brown: 25 30% 35%;
+    
+    /* Gradients for nature effects */
+    --gradient-earth: linear-gradient(135deg, hsl(35 25% 85%), hsl(25 40% 70%));
+    --gradient-growth: linear-gradient(to top, hsl(25 30% 35%), hsl(120 25% 40%), hsl(110 40% 50%));
+    --gradient-sky: linear-gradient(to bottom, hsl(200 30% 85%), hsl(45 20% 97%));
+    --gradient-water: linear-gradient(45deg, hsl(200 80% 70%), hsl(180 60% 75%));
+
+    /* Organic shadows */
+    --shadow-soft: 0 4px 20px hsl(25 30% 15% / 0.08);
+    --shadow-plant: 0 8px 30px hsl(120 25% 40% / 0.15);
+    --shadow-growth: 0 0 30px hsl(110 40% 50% / 0.3);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 25 30% 8%;
+    --foreground: 45 20% 95%;
+
+    --card: 25 25% 12%;
+    --card-foreground: 45 20% 95%;
+
+    --popover: 25 25% 12%;
+    --popover-foreground: 45 20% 95%;
+
+    --primary: 140 35% 45%;
+    --primary-foreground: 25 30% 8%;
+
+    --secondary: 25 20% 20%;
+    --secondary-foreground: 45 20% 95%;
+
+    --muted: 25 15% 18%;
+    --muted-foreground: 40 15% 60%;
+
+    --accent: 25 45% 65%;
+    --accent-foreground: 25 30% 8%;
+
+    --destructive: 15 70% 45%;
+    --destructive-foreground: 45 20% 95%;
+
+    --border: 25 15% 25%;
+    --input: 25 15% 25%;
+    --ring: 140 35% 45%;
+
+    /* Dark mode plant colors */
+    --plant-base: 120 30% 50%;
+    --plant-growth: 110 45% 60%;
+    --plant-bloom: 100 55% 70%;
+    --water-droplet: 200 75% 65%;
+    --earth-brown: 25 25% 40%;
+    
+    /* Dark mode gradients */
+    --gradient-earth: linear-gradient(135deg, hsl(25 20% 20%), hsl(25 45% 65%));
+    --gradient-growth: linear-gradient(to top, hsl(25 25% 40%), hsl(120 30% 50%), hsl(110 45% 60%));
+    --gradient-sky: linear-gradient(to bottom, hsl(200 25% 25%), hsl(25 30% 8%));
+    --gradient-water: linear-gradient(45deg, hsl(200 75% 65%), hsl(180 55% 70%));
+
+    /* Dark shadows */
+    --shadow-soft: 0 4px 20px hsl(25 30% 0% / 0.3);
+    --shadow-plant: 0 8px 30px hsl(120 30% 50% / 0.2);
+    --shadow-growth: 0 0 30px hsl(110 45% 60% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
