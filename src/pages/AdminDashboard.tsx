@@ -1,49 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target, MapPin, MessageCircle, Eye, ThumbsUp, Shield, LogOut } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import {
+  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import {
+  Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target,
+  MapPin, MessageCircle, Shield, LogOut, LayoutGrid, Activity, PieChart as PieIcon, Layers
+} from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 
+type TimeRangeKey = '3months' | '6months' | '1year';
+type NavTab =
+  | 'overview'
+  | 'donationTrends'
+  | 'donorGrowth'
+  | 'statusDistribution'
+  | 'districts'
+  | 'socialEngagement'
+  | 'impact';
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [timeRange, setTimeRange] = useState('6months');
-  
-  // Mock donor data matching your teammate's structure
+  const [timeRange, setTimeRange] = useState<TimeRangeKey>('6months');
+  const [navTab, setNavTab] = useState<NavTab>('overview'); // NEW: navigation
+
+  // --- Mock donor data ---
   const mockDonors = [
-    { id: 1, name: "Sarah Johnson", email: "sarah@email.com", totalDonated: 450, lastDonation: "2024-01-15", status: "Active", region: "District 1" },
-    { id: 2, name: "Mike Chen", email: "mike@email.com", totalDonated: 320, lastDonation: "2024-01-14", status: "Active", region: "District 2" },
-    { id: 3, name: "Emma Wilson", email: "emma@email.com", totalDonated: 678, lastDonation: "2024-01-13", status: "Premium", region: "District 1" },
-    { id: 4, name: "David Brown", email: "david@email.com", totalDonated: 234, lastDonation: "2024-01-10", status: "Active", region: "District 3" },
-    { id: 5, name: "Lisa Garcia", email: "lisa@email.com", totalDonated: 892, lastDonation: "2024-01-12", status: "Premium", region: "District 2" },
-    { id: 6, name: "John Wong", email: "john@email.com", totalDonated: 567, lastDonation: "2024-01-11", status: "Active", region: "District 1" },
-    { id: 7, name: "Amy Lee", email: "amy@email.com", totalDonated: 345, lastDonation: "2024-01-09", status: "Active", region: "District 3" },
-    { id: 8, name: "Peter Tam", email: "peter@email.com", totalDonated: 789, lastDonation: "2024-01-08", status: "Premium", region: "District 2" },
-    { id: 9, name: "Jenny Kim", email: "jenny@email.com", totalDonated: 456, lastDonation: "2024-01-07", status: "Active", region: "District 1" },
-    { id: 10, name: "Alex Ng", email: "alex@email.com", totalDonated: 623, lastDonation: "2024-01-06", status: "Premium", region: "District 3" },
-    { id: 11, name: "Grace Liu", email: "grace@email.com", totalDonated: 298, lastDonation: "2024-01-05", status: "Active", region: "District 2" },
-    { id: 12, name: "Kevin Lau", email: "kevin@email.com", totalDonated: 534, lastDonation: "2024-01-04", status: "Active", region: "District 1" }
+    { id: 1, name: "Sarah Johnson", email: "sarah@email.com", totalDonated: 820, lastDonation: "2024-01-15", status: "Active", region: "District 1" },
+    { id: 2, name: "Mike Chen", email: "mike@email.com", totalDonated: 540, lastDonation: "2024-01-14", status: "Premium", region: "District 2" },
+    { id: 3, name: "Emma Wilson", email: "emma@email.com", totalDonated: 980, lastDonation: "2024-01-13", status: "Active", region: "District 3" },
+    { id: 4, name: "David Brown", email: "david@email.com", totalDonated: 320, lastDonation: "2024-01-12", status: "Active", region: "District 4" },
+    { id: 5, name: "Lisa Garcia", email: "lisa@email.com", totalDonated: 720, lastDonation: "2024-01-11", status: "Premium", region: "District 5" },
+    { id: 6, name: "John Wong", email: "john@email.com", totalDonated: 640, lastDonation: "2024-01-10", status: "Active", region: "District 6" },
+    { id: 7, name: "Amy Lee", email: "amy@email.com", totalDonated: 410, lastDonation: "2024-01-09", status: "Active", region: "District 7" },
+    { id: 8, name: "Peter Tan", email: "peter@email.com", totalDonated: 785, lastDonation: "2024-01-08", status: "Premium", region: "District 8" },
+    { id: 9, name: "Jenny Kim", email: "jenny@email.com", totalDonated: 630, lastDonation: "2024-01-07", status: "Active", region: "District 9" },
+    { id: 10, name: "Alex Ng", email: "alex@email.com", totalDonated: 920, lastDonation: "2024-01-06", status: "Premium", region: "District 10" },
+    { id: 11, name: "Grace Liu", email: "grace@email.com", totalDonated: 450, lastDonation: "2024-01-05", status: "Active", region: "District 11" },
+    { id: 12, name: "Kevin Lau", email: "kevin@email.com", totalDonated: 880, lastDonation: "2024-01-04", status: "Active", region: "District 12" },
+  
+    // --- Additional 48 donors auto-generated manually ---
+    { id: 13, name: "Rachel Tan", email: "rachel@email.com", totalDonated: 760, lastDonation: "2024-01-03", status: "Premium", region: "District 13" },
+    { id: 14, name: "James Lim", email: "james@email.com", totalDonated: 470, lastDonation: "2024-01-03", status: "Active", region: "District 14" },
+    { id: 15, name: "Priya Singh", email: "priya@email.com", totalDonated: 620, lastDonation: "2024-01-02", status: "Active", region: "District 15" },
+    { id: 16, name: "Anand Patel", email: "anand@email.com", totalDonated: 850, lastDonation: "2024-01-02", status: "Premium", region: "District 16" },
+    { id: 17, name: "Siti Nurhaliza", email: "siti@email.com", totalDonated: 390, lastDonation: "2024-01-01", status: "Active", region: "District 17" },
+    { id: 18, name: "Mohd Zulkifli", email: "zul@email.com", totalDonated: 580, lastDonation: "2024-01-01", status: "Active", region: "District 18" },
+    { id: 19, name: "Ethan Koh", email: "ethan@email.com", totalDonated: 670, lastDonation: "2023-12-29", status: "Premium", region: "District 1" },
+    { id: 20, name: "Sophia Tan", email: "sophia@email.com", totalDonated: 720, lastDonation: "2023-12-28", status: "Active", region: "District 2" },
+    { id: 21, name: "Daniel Park", email: "daniel@email.com", totalDonated: 800, lastDonation: "2023-12-28", status: "Active", region: "District 3" },
+    { id: 22, name: "Kim Min", email: "kim@email.com", totalDonated: 540, lastDonation: "2023-12-27", status: "Premium", region: "District 4" },
+    { id: 23, name: "Olivia Brown", email: "olivia@email.com", totalDonated: 860, lastDonation: "2023-12-27", status: "Active", region: "District 5" },
+    { id: 24, name: "Liam Johnson", email: "liam@email.com", totalDonated: 730, lastDonation: "2023-12-25", status: "Active", region: "District 6" },
+    { id: 25, name: "Isabella Chen", email: "isabella@email.com", totalDonated: 900, lastDonation: "2023-12-24", status: "Premium", region: "District 7" },
+    { id: 26, name: "Jack Lee", email: "jack@email.com", totalDonated: 460, lastDonation: "2023-12-23", status: "Active", region: "District 8" },
+    { id: 27, name: "Charlotte Kim", email: "charlotte@email.com", totalDonated: 680, lastDonation: "2023-12-23", status: "Active", region: "District 9" },
+    { id: 28, name: "Benjamin Lim", email: "ben@email.com", totalDonated: 500, lastDonation: "2023-12-22", status: "Premium", region: "District 10" },
+    { id: 29, name: "Aarav Gupta", email: "aarav@email.com", totalDonated: 770, lastDonation: "2023-12-21", status: "Active", region: "District 11" },
+    { id: 30, name: "Emily Wong", email: "emily@email.com", totalDonated: 690, lastDonation: "2023-12-21", status: "Active", region: "District 12" },
+    { id: 31, name: "Hannah Lee", email: "hannah@email.com", totalDonated: 930, lastDonation: "2023-12-20", status: "Premium", region: "District 13" },
+    { id: 32, name: "Chloe Tan", email: "chloe@email.com", totalDonated: 510, lastDonation: "2023-12-20", status: "Active", region: "District 14" },
+    { id: 33, name: "Noah Smith", email: "noah@email.com", totalDonated: 890, lastDonation: "2023-12-19", status: "Active", region: "District 15" },
+    { id: 34, name: "Mia Lim", email: "mia@email.com", totalDonated: 740, lastDonation: "2023-12-18", status: "Premium", region: "District 16" },
+    { id: 35, name: "Lucas Lee", email: "lucas@email.com", totalDonated: 830, lastDonation: "2023-12-17", status: "Active", region: "District 17" },
+    { id: 36, name: "Aiden Chua", email: "aiden@email.com", totalDonated: 650, lastDonation: "2023-12-17", status: "Active", region: "District 18" },
+    { id: 37, name: "Zoe Chen", email: "zoe@email.com", totalDonated: 720, lastDonation: "2023-12-16", status: "Premium", region: "District 1" },
+    { id: 38, name: "Evelyn Ng", email: "evelyn@email.com", totalDonated: 570, lastDonation: "2023-12-15", status: "Active", region: "District 2" },
+    { id: 39, name: "Elijah Tan", email: "elijah@email.com", totalDonated: 610, lastDonation: "2023-12-14", status: "Active", region: "District 3" },
+    { id: 40, name: "Harper Lim", email: "harper@email.com", totalDonated: 910, lastDonation: "2023-12-13", status: "Premium", region: "District 4" },
+    { id: 41, name: "Mason Ho", email: "mason@email.com", totalDonated: 870, lastDonation: "2023-12-13", status: "Active", region: "District 5" },
+    { id: 42, name: "Ella Park", email: "ella@email.com", totalDonated: 750, lastDonation: "2023-12-12", status: "Active", region: "District 6" },
+    { id: 43, name: "Ryan Ong", email: "ryan@email.com", totalDonated: 640, lastDonation: "2023-12-12", status: "Premium", region: "District 7" },
+    { id: 44, name: "Aria Tan", email: "aria@email.com", totalDonated: 720, lastDonation: "2023-12-11", status: "Active", region: "District 8" },
+    { id: 45, name: "Henry Lau", email: "henry@email.com", totalDonated: 580, lastDonation: "2023-12-11", status: "Active", region: "District 9" },
+    { id: 46, name: "Grace Tan", email: "grace.tan@email.com", totalDonated: 830, lastDonation: "2023-12-10", status: "Premium", region: "District 10" },
+    { id: 47, name: "Nathan Lee", email: "nathan@email.com", totalDonated: 620, lastDonation: "2023-12-09", status: "Active", region: "District 11" },
+    { id: 48, name: "Sophie Chan", email: "sophie@email.com", totalDonated: 870, lastDonation: "2023-12-08", status: "Active", region: "District 12" },
+    { id: 49, name: "Gabriel Lim", email: "gabriel@email.com", totalDonated: 940, lastDonation: "2023-12-08", status: "Premium", region: "District 13" },
+    { id: 50, name: "Victoria Ng", email: "victoria@email.com", totalDonated: 780, lastDonation: "2023-12-07", status: "Active", region: "District 14" },
+    { id: 51, name: "Dylan Tan", email: "dylan@email.com", totalDonated: 520, lastDonation: "2023-12-07", status: "Active", region: "District 15" },
+    { id: 52, name: "Lily Zhang", email: "lily@email.com", totalDonated: 860, lastDonation: "2023-12-06", status: "Premium", region: "District 16" },
+    { id: 53, name: "Caleb Wong", email: "caleb@email.com", totalDonated: 750, lastDonation: "2023-12-05", status: "Active", region: "District 17" },
+    { id: 54, name: "Amelia Low", email: "amelia@email.com", totalDonated: 900, lastDonation: "2023-12-04", status: "Active", region: "District 18" },
+    { id: 55, name: "Joshua Chua", email: "joshua@email.com", totalDonated: 810, lastDonation: "2023-12-04", status: "Premium", region: "District 1" },
+    { id: 56, name: "Madeline Koh", email: "madeline@email.com", totalDonated: 670, lastDonation: "2023-12-03", status: "Active", region: "District 2" },
+    { id: 57, name: "Samuel Ho", email: "samuel@email.com", totalDonated: 710, lastDonation: "2023-12-02", status: "Active", region: "District 3" },
+    { id: 58, name: "Chloe Ng", email: "chloe@email.com", totalDonated: 850, lastDonation: "2023-12-02", status: "Premium", region: "District 4" },
+    { id: 59, name: "Adam Lee", email: "adam@email.com", totalDonated: 780, lastDonation: "2023-12-01", status: "Active", region: "District 5" },
+    { id: 60, name: "Samantha Chen", email: "samantha@email.com", totalDonated: 930, lastDonation: "2023-12-01", status: "Active", region: "District 6" }
   ];
 
-  // Calculate metrics from donor data
+  // --- Metrics derived from donor data (kept) ---
   const totalDonors = mockDonors.length;
-  const totalRaised = mockDonors.reduce((sum, donor) => sum + donor.totalDonated, 0);
-  const activeDonors = mockDonors.filter(donor => donor.status === "Active").length;
-  const premiumDonors = mockDonors.filter(donor => donor.status === "Premium").length;
+  const totalRaised = mockDonors.reduce((sum, d) => sum + d.totalDonated, 0);
+  const activeDonors = mockDonors.filter(d => d.status === "Active").length;
+  const premiumDonors = mockDonors.filter(d => d.status === "Premium").length;
 
-  // Sample data for different time periods based on donor data
-  const dataByPeriod = {
+  // --- Time-series data (kept) ---
+  const dataByPeriod: Record<TimeRangeKey, any> = {
     '3months': {
       monthly: [
         { month: 'Jun', donors: Math.floor(totalDonors * 0.6), amount: Math.floor(totalRaised * 0.3), newDonors: 3, retention: 85 },
         { month: 'Jul', donors: Math.floor(totalDonors * 0.8), amount: Math.floor(totalRaised * 0.6), newDonors: 4, retention: 88 },
         { month: 'Aug', donors: totalDonors, amount: totalRaised, newDonors: 5, retention: 92 }
       ],
-      totalDonors: totalDonors,
-      totalRaised: totalRaised,
-      retention: 92,
-      socialReach: 1200,
+      totalDonors, totalRaised, retention: 92, socialReach: 1200,
       trends: { donors: 15.2, amount: 28.5, retention: 4.1, social: 18.7 }
     },
     '6months': {
@@ -55,10 +119,7 @@ const AdminDashboard = () => {
         { month: 'Jul', donors: Math.floor(totalDonors * 0.8), amount: Math.floor(totalRaised * 0.75), newDonors: 4, retention: 90 },
         { month: 'Aug', donors: totalDonors, amount: totalRaised, newDonors: 5, retention: 92 }
       ],
-      totalDonors: totalDonors,
-      totalRaised: totalRaised,
-      retention: 92,
-      socialReach: 2340,
+      totalDonors, totalRaised, retention: 92, socialReach: 2340,
       trends: { donors: 26.8, amount: 35.6, retention: 8.2, social: 34.5 }
     },
     '1year': {
@@ -76,22 +137,20 @@ const AdminDashboard = () => {
         { month: 'Jul', donors: Math.floor(totalDonors * 0.88), amount: Math.floor(totalRaised * 0.87), newDonors: 4, retention: 90 },
         { month: 'Aug', donors: totalDonors, amount: totalRaised, newDonors: 5, retention: 92 }
       ],
-      totalDonors: totalDonors,
-      totalRaised: totalRaised,
-      retention: 92,
-      socialReach: 4680,
+      totalDonors, totalRaised, retention: 92, socialReach: 4680,
       trends: { donors: 42.3, amount: 58.4, retention: 12.8, social: 48.7 }
     }
   };
 
   const currentData = dataByPeriod[timeRange];
 
+  // --- Donor status (kept) ---
   const donorSegments = [
     { name: 'Active', value: activeDonors, color: '#8ab371' },
     { name: 'Premium', value: premiumDonors, color: '#fdba74' }
   ];
 
-  // Social feed engagement data
+  // --- Social feed (kept) ---
   const socialFeedData = [
     { category: 'Impact Stories', posts: 28, views: 1420, likes: 156, shares: 42 },
     { category: 'Parent Updates', posts: 34, views: 1680, likes: 203, shares: 28 },
@@ -99,25 +158,46 @@ const AdminDashboard = () => {
     { category: 'Volunteer Highlights', posts: 12, views: 640, likes: 87, shares: 19 }
   ];
 
-  // Geographic distribution data (3 districts only)
-  const getDistrictData = () => {
-    const districts = ['District 1', 'District 2', 'District 3'];
-    return districts.map(district => {
-      const districtDonors = mockDonors.filter(donor => donor.region === district);
-      const donorCount = districtDonors.length;
-      const totalAmount = districtDonors.reduce((sum, donor) => sum + donor.totalDonated, 0);
+  // --- NEW: 18 Districts with proportional split (deterministic, sums to totals) ---
+  const geographicData = useMemo(() => {
+    const districtNames = Array.from({ length: 18 }, (_, i) => `District ${i + 1}`);
+
+    // A fixed weight pattern (peaks in a few districts) – no randomness, consistent across renders
+    const baseWeights = [
+      1.4, 1.1, 0.8, 0.9, 1.2, 0.7,
+      1.3, 1.0, 0.6, 1.5, 0.95, 0.85,
+      1.25, 0.75, 1.05, 0.65, 1.35, 0.9
+    ];
+    const weightSum = baseWeights.reduce((s, w) => s + w, 0);
+
+    // Distribute donors to sum exactly to totalDonors (round robin to fix rounding drift)
+    const donorAllocFloat = baseWeights.map(w => (w / weightSum) * totalDonors);
+    const donorAlloc = donorAllocFloat.map(Math.floor);
+    let remaining = totalDonors - donorAlloc.reduce((s, n) => s + n, 0);
+    // add the remaining donors to the largest fractional remainders
+    const remainders = donorAllocFloat.map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
+      .sort((a, b) => b.frac - a.frac);
+    for (let i = 0; i < remaining; i++) donorAlloc[remainders[i].idx] += 1;
+
+    // Distribute amount proportionally as well
+    const amountAlloc = baseWeights.map(w => Math.round((w / weightSum) * totalRaised));
+
+    const colors = ['#8ab371', '#87ceeb', '#fdba74']; // cycle your existing palette
+    return districtNames.map((district, i) => {
+      const donors = donorAlloc[i];
+      const amount = amountAlloc[i];
+      const percentage = totalDonors > 0 ? Math.round((donors / totalDonors) * 100) : 0;
       return {
         district,
-        donors: donorCount,
-        amount: totalAmount,
-        percentage: Math.round((donorCount / totalDonors) * 100),
-        color: district === 'District 1' ? '#8ab371' : district === 'District 2' ? '#87ceeb' : '#fdba74'
+        donors,
+        amount,
+        percentage,
+        color: colors[i % colors.length]
       };
     });
-  };
+  }, [totalDonors, totalRaised]);
 
-  const geographicData = getDistrictData();
-
+  // --- Impact metrics (kept) ---
   const impactMetrics = [
     { metric: 'Children Reached', value: totalDonors * 7, growth: 15.2 },
     { metric: 'Learning Hours', value: Math.floor(totalRaised / 2), growth: 22.8 },
@@ -125,14 +205,17 @@ const AdminDashboard = () => {
     { metric: 'Partner Schools', value: 12, growth: 33.3 }
   ];
 
-  const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass = "text-plant-growth" }) => (
+  // --- UI pieces (kept) ---
+  const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass = "text-plant-growth" }:{
+    title: string; value: string; subtitle?: string; icon: any; trend?: number; colorClass?: string;
+  }) => (
     <Card className="shadow-soft">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={`p-3 rounded-lg bg-muted/30`}>
+          <div className="p-3 rounded-lg bg-muted/30">
             <Icon className={`w-6 h-6 ${colorClass}`} />
           </div>
-          {trend && (
+          {typeof trend === 'number' && (
             <div className={`flex items-center text-sm ${trend > 0 ? 'text-plant-growth' : 'text-red-500'}`}>
               <TrendingUp className="w-4 h-4 mr-1" />
               {trend > 0 ? '+' : ''}{trend}%
@@ -146,7 +229,9 @@ const AdminDashboard = () => {
     </Card>
   );
 
-  const MetricCard = ({ title, value, growth, icon: Icon }) => (
+  const MetricCard = ({ title, value, growth, icon: Icon }:{
+    title: string; value: number; growth: number; icon: any;
+  }) => (
     <div className="bg-muted/30 rounded-lg p-4 border border-border/30">
       <div className="flex items-center justify-between mb-2">
         <Icon className="w-5 h-5 text-plant-growth" />
@@ -157,28 +242,259 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = () => logout();
+
+  // --- Page sections (same design, split by tab) ---
+  const DonationTrendsCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <TrendingUp className="w-5 h-5 mr-2 text-plant-growth" />
+          Donation Trends
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={currentData.monthly}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+            <Legend />
+            <Area
+              type="monotone"
+              dataKey="amount"
+              stroke="hsl(var(--plant-growth))"
+              fill="url(#colorAmount)"
+              strokeWidth={2}
+              name="Amount Raised ($)"
+            />
+            <defs>
+              <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--plant-growth))" stopOpacity={0.2}/>
+                <stop offset="95%" stopColor="hsl(var(--plant-growth))" stopOpacity={0.05}/>
+              </linearGradient>
+            </defs>
+          </AreaChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const DonorGrowthCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <UserPlus className="w-5 h-5 mr-2 text-plant-growth" />
+          Donor Growth & Retention
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={currentData.monthly}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="donors"
+              stroke="hsl(var(--plant-growth))"
+              strokeWidth={2}
+              dot={{ fill: 'hsl(var(--plant-growth))', strokeWidth: 2, r: 4 }}
+              name="Total Donors"
+            />
+            <Line
+              type="monotone"
+              dataKey="retention"
+              stroke="#d2b48c"
+              strokeWidth={2}
+              dot={{ fill: '#d2b48c', strokeWidth: 2, r: 4 }}
+              name="Retention Rate (%)"
+              connectNulls
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const StatusDistributionCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Users className="w-5 h-5 mr-2 text-plant-growth" />
+          Donor Status Distribution
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={320}>
+          <PieChart>
+            <Pie
+              data={donorSegments}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              dataKey="value"
+              stroke="white"
+              strokeWidth={2}
+            >
+              {donorSegments.map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const AmountByDistrictCard = () => {
+    // sort districts naturally by number (1 → 18)
+    const data = React.useMemo(
+      () =>
+        [...geographicData].sort((a, b) => {
+          const numA = parseInt(a.district.split(" ")[1], 10);
+          const numB = parseInt(b.district.split(" ")[1], 10);
+          return numA - numB;
+        }),
+      [geographicData]
+    );
+  
+    return (
+      <Card className="shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <MapPin className="w-5 h-5 mr-2 text-plant-growth" />
+            Amount Raised by District
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={360}>
+            <BarChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+              <XAxis
+                dataKey="district"
+                stroke="hsl(var(--muted-foreground))"
+                angle={-45}
+                textAnchor="end"
+                interval={0}
+                height={60}
+                fontSize={12}
+              />
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                tickFormatter={(v) => `$${v.toLocaleString()}`}
+              />
+              <Tooltip
+                formatter={(v: number) => [`$${v.toLocaleString()}`, 'Amount']}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+              />
+              <Bar
+                dataKey="amount"
+                name="Amount ($)"
+                radius={[3, 3, 0, 0]}
+                fill="#8ab371" 
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
   };
+
+  const SocialEngagementCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <MessageCircle className="w-5 h-5 mr-2 text-plant-growth" />
+          Social Feed Engagement
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-2">
+        <ResponsiveContainer width="100%" height={480}>
+          <BarChart data={socialFeedData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+            <XAxis
+              dataKey="category"
+              stroke="hsl(var(--muted-foreground))"
+              angle={-35}
+              textAnchor="end"
+              height={10}
+              interval={0}
+              fontSize={11}
+            />
+            <YAxis stroke="hsl(var(--muted-foreground))" />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+            <Legend wrapperStyle={{ paddingTop: '70px' }} />
+            <Bar dataKey="views" fill="#8ab371" radius={[2, 2, 0, 0]} name="Views" />
+            <Bar dataKey="likes" fill="hsl(var(--accent))" radius={[2, 2, 0, 0]} name="Likes" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const ImpactCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Target className="w-5 h-5 mr-2 text-plant-growth" />
+          Impact Overview
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {impactMetrics.map((m, i) => (
+            <div key={i} className="bg-muted/30 rounded-lg p-4 border border-border/30">
+              <div className="flex items-center justify-between mb-2">
+                <Target className="w-5 h-5 text-plant-growth" />
+                <span className="text-sm font-medium text-accent">+{m.growth}%</span>
+              </div>
+              <p className="text-lg font-bold text-primary">{m.value.toLocaleString()}</p>
+              <p className="text-sm text-muted-foreground">{m.metric}</p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // --- Navigation items ---
+  const NAV_ITEMS: { key: NavTab; label: string; icon: any }[] = [
+    { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
+    { key: 'donationTrends',     label: 'Donation Trends',        icon: Activity },
+    { key: 'donorGrowth',        label: 'Donor Growth & Retention',icon: Users },
+    { key: 'statusDistribution', label: 'Donor Status Distribution',    icon: PieIcon },
+    { key: 'districts',          label: 'Amount by Districts',    icon: MapPin },
+    { key: 'socialEngagement',   label: 'Social Engagement',      icon: MessageCircle },
+    { key: 'impact',             label: 'Impact',                 icon: Layers },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-sky">
-      {/* Header */}
+      {/* Header (kept) */}
       <header className="border-b border-border/30 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Shield className="h-8 w-8 text-accent" />
             <h1 className="text-2xl font-bold text-primary">ReachTogether Analytics</h1>
           </div>
-          
+
           <div className="flex items-center space-x-4">
-            <Badge variant="secondary">
-              Admin: {user?.name}
-            </Badge>
+            <Badge variant="secondary">Admin: {user?.name}</Badge>
             <div className="flex space-x-2">
-              <select 
-                value={timeRange} 
-                onChange={(e) => setTimeRange(e.target.value)}
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as TimeRangeKey)}
                 className="px-3 py-2 border border-border rounded-lg bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="3months">Last 3 months</option>
@@ -192,281 +508,111 @@ const AdminDashboard = () => {
             </Button>
           </div>
         </div>
+
+        {/* NEW: Navigation bar */}
+        <div className="container mx-auto px-4 pb-3 pt-2">
+          <div className="flex flex-wrap gap-2">
+            {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setNavTab(key)}
+                className={[
+                  "px-3 py-2 rounded-lg border transition",
+                  "bg-card text-foreground border-border/50 hover:border-accent/60",
+                  navTab === key ? "ring-2 ring-accent" : ""
+                ].join(" ")}
+              >
+                <span className="inline-flex items-center gap-2 text-sm">
+                  <Icon className="w-4 h-4 text-plant-growth" />
+                  {label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
+      {/* Pages */}
       <div className="container mx-auto px-4 py-8 space-y-8">
-        
-        {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard 
-            title="Total Donors" 
-            value={currentData.totalDonors.toString()} 
-            subtitle="Active this period"
-            icon={Users} 
-            trend={currentData.trends.donors}
-            colorClass="text-primary"
-          />
-          <KPICard 
-            title="Total Raised" 
-            value={`$${currentData.totalRaised.toLocaleString()}`} 
-            subtitle="This period"
-            icon={DollarSign} 
-            trend={currentData.trends.amount}
-            colorClass="text-plant-growth"
-          />
-          <KPICard 
-            title="Donor Retention" 
-            value={`${currentData.retention}%`} 
-            subtitle="Average retention"
-            icon={Repeat} 
-            trend={currentData.trends.retention}
-            colorClass="text-accent"
-          />
-          <KPICard 
-            title="Social Reach" 
-            value={currentData.socialReach.toLocaleString()} 
-            subtitle="Views & interactions"
-            icon={Share2} 
-            trend={currentData.trends.social}
-            colorClass="text-earth"
-          />
-        </div>
-
-        {/* Charts Row 1 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Donation Trends */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-plant-growth" />
-                Donation Trends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={currentData.monthly}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  />
-                  <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="amount" 
-                    stroke="hsl(var(--plant-growth))" 
-                    fill="url(#colorAmount)" 
-                    strokeWidth={2}
-                    name="Amount Raised ($)"
-                  />
-                  <defs>
-                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--plant-growth))" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="hsl(var(--plant-growth))" stopOpacity={0.05}/>
-                    </linearGradient>
-                  </defs>
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Donor Growth */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <UserPlus className="w-5 h-5 mr-2 text-plant-growth" />
-                Donor Growth & Retention
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={currentData.monthly}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                  <YAxis stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="donors" 
-                    stroke="hsl(var(--plant-growth))" 
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--plant-growth))', strokeWidth: 2, r: 4 }}
-                    name="Total Donors"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="retention" 
-                    stroke="#d2b48c" 
-                    strokeWidth={2}
-                    dot={{ fill: '#d2b48c', strokeWidth: 2, r: 4 }}
-                    name="Retention Rate (%)"
-                    connectNulls={true}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 2 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Donor Segments */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="w-5 h-5 mr-2 text-plant-growth" />
-                Donor Status Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={donorSegments}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    stroke="white"
-                    strokeWidth={2}
-                  >
-                    {donorSegments.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Geographic Distribution */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MapPin className="w-5 h-5 mr-2 text-plant-growth" />
-                Donors by District
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {geographicData.map((district, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">{district.district}</span>
-                      <span className="text-sm text-muted-foreground">{district.donors} donors ({district.percentage}%)</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full" 
-                        style={{ width: `${district.percentage}%`, backgroundColor: district.color }}
-                      />
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-semibold text-plant-growth">${district.amount.toLocaleString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Social Feed Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Social Feed Engagement */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <MessageCircle className="w-5 h-5 mr-2 text-plant-growth" />
-                Social Feed Engagement
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-2">
-              <ResponsiveContainer width="100%" height={480}>
-                <BarChart data={socialFeedData} margin={{ top: 20, right: 30, left: 20, bottom: 0}}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis 
-                    dataKey="category" 
-                    stroke="hsl(var(--muted-foreground))" 
-                    angle={-35} 
-                    textAnchor="end" 
-                    height={10}
-                    interval={0}
-                    fontSize={11}
-                  />
-                  <YAxis stroke="hsl(var(--muted-foreground))"/>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                  />
-                  <Legend wrapperStyle={{ paddingTop: '70px' }} />
-                  <Bar dataKey="views" fill='#8ab371' radius={[2, 2, 0, 0]} name="Views" />
-                  <Bar dataKey="likes" fill="hsl(var(--accent))" radius={[2, 2, 0, 0]} name="Likes" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Impact Metrics */}
-          <Card className="shadow-soft">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Target className="w-5 h-5 mr-2 text-plant-growth" />
-                Impact Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {impactMetrics.map((metric, index) => (
-                  <MetricCard 
-                    key={index}
-                    title={metric.metric}
-                    value={metric.value}
-                    growth={metric.growth}
-                    icon={Target}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity Feed */}
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Heart className="w-5 h-5 mr-2 text-plant-growth" />
-              Recent Donor Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {mockDonors.slice(0, 5).map((donor) => (
-                <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div className="flex items-center">
-                    <div className={`w-3 h-3 rounded-full mr-3 ${
-                      donor.status === 'Premium' ? 'bg-orange-300' : 'bg-[#8ab371]'
-                    }`}></div>
-                    <div>
-                      <p className="font-medium text-primary">{donor.name}</p>
-                      <p className="text-sm text-muted-foreground">{donor.region} • {donor.status}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-plant-growth">${donor.totalDonated}</p>
-                    <p className="text-xs text-muted-foreground">{donor.lastDonation}</p>
-                  </div>
-                </div>
-              ))}
+        {navTab === 'overview' && (
+          <>
+            {/* KPI page: just the 4 cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <KPICard
+                title="Total Donors"
+                value={currentData.totalDonors.toString()}
+                subtitle="Active this period"
+                icon={Users}
+                trend={currentData.trends.donors}
+                colorClass="text-primary"
+              />
+              <KPICard
+                title="Total Raised"
+                value={`$${currentData.totalRaised.toLocaleString()}`}
+                subtitle="This period"
+                icon={DollarSign}
+                trend={currentData.trends.amount}
+                colorClass="text-plant-growth"
+              />
+              <KPICard
+                title="Donor Retention"
+                value={`${currentData.retention}%`}
+                subtitle="Average retention"
+                icon={Repeat}
+                trend={currentData.trends.retention}
+                colorClass="text-accent"
+              />
+              <KPICard
+                title="Social Reach"
+                value={currentData.socialReach.toLocaleString()}
+                subtitle="Views & interactions"
+                icon={Share2}
+                trend={currentData.trends.social}
+                colorClass="text-earth"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Keep your recent activity under Overview for convenience */}
+            <Card className="shadow-soft">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Heart className="w-5 h-5 mr-2 text-plant-growth" />
+                  Recent Donor Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {mockDonors.slice(0, 5).map((donor) => (
+                    <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center">
+                        <div
+                          className={`w-3 h-3 rounded-full mr-3 ${
+                            donor.status === 'Premium' ? 'bg-orange-300' : 'bg-[#8ab371]'
+                          }`}
+                        />
+                        <div>
+                          <p className="font-medium text-primary">{donor.name}</p>
+                          <p className="text-sm text-muted-foreground">{donor.region} • {donor.status}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-plant-growth">${donor.totalDonated}</p>
+                        <p className="text-xs text-muted-foreground">{donor.lastDonation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {navTab === 'donationTrends' && <DonationTrendsCard />}
+        {navTab === 'donorGrowth' && <DonorGrowthCard />}
+        {navTab === 'statusDistribution' && <StatusDistributionCard />}
+        {navTab === 'districts' && <AmountByDistrictCard />}
+        {navTab === 'socialEngagement' && <SocialEngagementCard />}
+        {navTab === 'impact' && <ImpactCard />}
       </div>
     </div>
   );
