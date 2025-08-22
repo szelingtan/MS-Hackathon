@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target, MapPin, MessageCircle, Eye, ThumbsUp, Shield, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('6months');
   
   // Mock donor data matching your teammate's structure
@@ -159,6 +161,7 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     logout();
+    navigate('/');
   };
 
   return (
