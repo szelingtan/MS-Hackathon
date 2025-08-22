@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sprout } from "lucide-react";
+import { Sprout, Telescope, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-plant-hands.jpg";
 
@@ -76,7 +76,7 @@ const Landing = () => {
                   <div className="text-center lg:text-left space-y-6">
                     <div className="flex items-center justify-center lg:justify-start space-x-3 mb-6">
                       <div className="w-12 h-12 bg-gradient-growth rounded-full flex items-center justify-center">
-                        <span className="text-2xl">👁️</span>
+                        <Telescope className="h-6 w-6 text-white" />
                       </div>
                       <h3 className="text-3xl font-bold text-foreground">Our Vision</h3>
                     </div>
@@ -98,7 +98,7 @@ const Landing = () => {
                   <div className="text-center lg:text-left space-y-6">
                     <div className="flex items-center justify-center lg:justify-start space-x-3 mb-6">
                       <div className="w-12 h-12 bg-gradient-water rounded-full flex items-center justify-center">
-                        <span className="text-2xl">🎯</span>
+                        <BookOpen className="h-6 w-6 text-white" />
                       </div>
                       <h3 className="text-3xl font-bold text-foreground">Our Mission</h3>
                     </div>
