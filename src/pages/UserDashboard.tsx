@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
@@ -16,6 +17,11 @@ const UserDashboard = () => {
   const [userPoints, setUserPoints] = useState(250);
   const [showDonationFlow, setShowDonationFlow] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
+  const navigate = useNavigate();
+
+  const goToProfile = () => {
+    navigate('/profile');
+  };
 
   const handleLogout = () => {
     logout();
@@ -42,6 +48,9 @@ const UserDashboard = () => {
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToProfile}>
+              Profile
             </Button>
           </div>
         </div>
