@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
@@ -14,15 +14,27 @@ import Profile from "./pages/Profile";
 const queryClient = new QueryClient();
 
 // Protected route component
-const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'user' | 'admin' }) => {
-  const { user, isAuthenticated } = useAuth();
+const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'donor' | 'admin' }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-sky flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
   
   if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
   }
   
   return <>{children}</>;
@@ -30,7 +42,19 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
 
 // Route handler that redirects authenticated users
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
+  
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-sky flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (isAuthenticated) {
     return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />;
@@ -44,41 +68,39 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={
-              <PublicRoute>
-                <Landing />
-              </PublicRoute>
-            } />
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute requiredRole="user">
-                <UserDashboard />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={
+            <PublicRoute>
+              <Landing />
+            </PublicRoute>
+          } />
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute requiredRole="donor">
+              <UserDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute requiredRole="donor">
+                <Profile />
               </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute requiredRole="user">
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+            } 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );

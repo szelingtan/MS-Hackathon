@@ -1,24 +1,21 @@
 import ImpactFeed from "@/components/ImpactFeed";
 import Leaderboard from "@/components/Leaderboard";
 import PlantGame from "@/components/PlantGame";
-import RegionSelector from "@/components/RegionSelector";
 import HongKongMap from "@/components/HongKongMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress"; // Add this import
-import { useAuth } from "@/contexts/AuthContext";
+import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-
-// Add this interface for the project data
 interface DonationProject {
   id: number;
   district: string;
@@ -33,12 +30,8 @@ interface DonationProject {
 }
 
 const UserDashboard = () => {
-  const { user, logout } = useAuth();
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [userPoints, setUserPoints] = useState(250);
-  const [showDonationFlow, setShowDonationFlow] = useState(false);
+  const { user, logout, updateWaterAmount, updateDonatedAmount } = useAuth();
   const [activeTab, setActiveTab] = useState("game");
-
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
@@ -51,64 +44,53 @@ const UserDashboard = () => {
 
   const handleLogout = () => {
     logout();
+    navigate('/');
   };
   
-  // Handler for project-specific donations
   const handleProjectDonate = (project: DonationProject) => {
     setCurrentProject(project);
-    setSelectedRegion(project.district);
-    setDonationAmount(10); // Default amount or you can set a different default
+    setDonationAmount(10);
     setIsDonationDialogOpen(true);
   };
 
   const handleDonation = async () => {
     if (donationAmount <= 0) {
-      toast({
-        title: "Invalid amount",
-        description: "Please enter a valid donation amount",
-        variant: "destructive",
-      });
+      toast.error("Please enter a valid donation amount");
       return;
     }
 
     try {
-      // Simulate API call to update the database
-      // In a real app, this would be a fetch call to your backend
-      const updatedPoints = userPoints + Math.floor(donationAmount * 5); // Convert dollars to points
-      setUserPoints(updatedPoints);
-
-      // Mock updating a donation database
-      const newDonation = {
-        id: Date.now(),
-        amount: donationAmount,
-        userId: user?.id || "anonymous",
-        date: new Date().toISOString(),
-        district: selectedRegion || "General Fund",
-        projectId: currentProject?.id || null,
-        projectTitle: currentProject?.title || null
-      };
-
-      console.log("Donation added:", newDonation);
+      // Update donated amount and give water drops (5 drops per dollar)
+      const waterDropsEarned = Math.floor(donationAmount * 5);
+      
+      await updateDonatedAmount(donationAmount);
+      await updateWaterAmount(waterDropsEarned);
       
       // Close dialog and show success message
       setIsDonationDialogOpen(false);
-      toast({
-        title: "Donation successful!",
-        description: `Thank you for donating $${donationAmount}${currentProject ? ' to ' + currentProject.title : ''}. You received ${Math.floor(donationAmount * 5)} drops!`,
-      });
+      toast.success(`Thank you for donating $${donationAmount}${currentProject ? ' to ' + currentProject.title : ''}! You received ${waterDropsEarned} water drops! 💧`);
       
-      // Reset donation amount and project for next time
+      // Reset for next time
       setDonationAmount(10);
       setCurrentProject(null);
     } catch (error) {
       console.error("Error processing donation:", error);
-      toast({
-        title: "Donation failed",
-        description: "There was an error processing your donation. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("There was an error processing your donation. Please try again.");
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-sky flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Please log in to access your dashboard.</p>
+          <Button onClick={() => navigate('/login')} className="mt-4">
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-sky">
@@ -121,15 +103,25 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
+              <Badge variant="secondary" className="flex items-center gap-2">
+                <Droplets className="h-4 w-4" />
+                {user.water_amount} drops
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                ${user.donated_amount} donated
+              </Badge>
+            </div>
             <Badge variant="secondary">
-              Welcome {user?.name}!
+              Welcome {user.name}!
             </Badge>
+            <Button variant="outline" size="sm" onClick={goToProfile}>
+              Profile
+            </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToProfile}>
-              Profile
             </Button>
           </div>
         </div>
@@ -143,8 +135,8 @@ const UserDashboard = () => {
               My Garden
             </TabsTrigger>
             <TabsTrigger value="feed" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Forestry
+              <MapPin className="h-4 w-4" />
+              Projects Map
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
@@ -153,11 +145,10 @@ const UserDashboard = () => {
           </TabsList>
 
           <TabsContent value="game" className="space-y-6">
-            <PlantGame waterDrops={userPoints} />
+            <PlantGame waterDrops={user.water_amount} />
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
-            {/* Hong Kong Map with onDonate prop */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -182,7 +173,7 @@ const UserDashboard = () => {
         </Tabs>
       </div>
 
-      {/* Donation Dialog with project information */}
+      {/* Donation Dialog */}
       <Dialog open={isDonationDialogOpen} onOpenChange={setIsDonationDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -211,26 +202,27 @@ const UserDashboard = () => {
               />
             </div>
             {currentProject && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Project</Label>
-                <div className="col-span-3 text-sm">{currentProject.title}</div>
-              </div>
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Project</Label>
+                  <div className="col-span-3 text-sm">{currentProject.title}</div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Region</Label>
+                  <div className="col-span-3">{currentProject.district}</div>
+                </div>
+                <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                  <p className="font-medium mb-1">Project Goal: ${currentProject.goal}</p>
+                  <p className="text-muted-foreground mb-2">
+                    ${currentProject.raised} raised so far by {currentProject.supporters} supporters
+                  </p>
+                  <Progress value={(currentProject.raised / currentProject.goal) * 100} className="h-2 mb-2" />
+                </div>
+              </>
             )}
-            {(selectedRegion || currentProject?.district) && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Region</Label>
-                <div className="col-span-3">{currentProject?.district || selectedRegion || "General Fund"}</div>
-              </div>
-            )}
-            {currentProject && (
-              <div className="mt-2 p-3 bg-muted rounded-md text-sm">
-                <p className="font-medium mb-1">Project Goal: ${currentProject.goal}</p>
-                <p className="text-muted-foreground mb-2">
-                  ${currentProject.raised} raised so far by {currentProject.supporters} supporters
-                </p>
-                <Progress value={(currentProject.raised / currentProject.goal) * 100} className="h-2 mb-2" />
-              </div>
-            )}
+            <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+              💧 You'll earn {Math.floor(donationAmount * 5)} water drops for this donation!
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDonationDialogOpen(false)}>

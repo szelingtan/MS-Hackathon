@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sprout, Users, Shield } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -13,37 +13,32 @@ const Login = () => {
   const [userPassword, setUserPassword] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    const success = await login(userEmail, userPassword, 'user');
+    const success = await login(userEmail, userPassword);
     if (success) {
-      toast.success("Welcome to your garden!");
+      toast.success("Welcome to your garden! 🌱");
       navigate('/dashboard');
     } else {
-      toast.error("Invalid credentials. Try password: 'password'");
+      toast.error("Invalid credentials. Check your email and password.");
     }
-    setIsLoading(false);
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    const success = await login(adminEmail, adminPassword, 'admin');
+    const success = await login(adminEmail, adminPassword);
     if (success) {
-      toast.success("Admin access granted");
+      toast.success("Admin access granted 🛡️");
       navigate('/admin');
     } else {
-      toast.error("Invalid admin credentials. Try password: 'password'");
+      toast.error("Invalid admin credentials.");
     }
-    setIsLoading(false);
   };
 
   return (
@@ -89,7 +84,7 @@ const Login = () => {
                   <Input
                     id="user-password"
                     type="password"
-                    placeholder="password"
+                    placeholder="Enter your password"
                     value={userPassword}
                     onChange={(e) => setUserPassword(e.target.value)}
                     className="h-12 text-base"
@@ -101,18 +96,15 @@ const Login = () => {
                   variant="nature" 
                   size="lg"
                   className="w-full h-12 text-base"
-                  disabled={isLoading}
+                  disabled={loading}
                 >
-                  {isLoading ? "Signing in..." : "Enter Garden"}
+                  {loading ? "Signing in..." : "Enter Garden"}
                 </Button>
               </form>
-              <p className="text-sm text-muted-foreground text-center">
-                Demo: Use any email and password "password"
-              </p>
             </CardContent>
           </Card>
 
-          {/* Reach Team Login Card */}
+          {/* Admin Login Card */}
           <Card className="shadow-soft hover:shadow-plant transition-all duration-300 transform hover:-translate-y-1">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2 text-2xl">
@@ -142,7 +134,7 @@ const Login = () => {
                   <Input
                     id="admin-password"
                     type="password"
-                    placeholder="password"
+                    placeholder="Enter team password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     className="h-12 text-base"
@@ -154,13 +146,14 @@ const Login = () => {
                   variant="earth" 
                   size="lg"
                   className="w-full h-12 text-base"
-                  disabled={isLoading}
+                  disabled={loading}
                 >
-                  {isLoading ? "Authenticating..." : "Manage Platform"}
+                  {loading ? "Authenticating..." : "Manage Platform"}
                 </Button>
               </form>
+              
               <p className="text-sm text-muted-foreground text-center">
-                Demo: Use any email and password "password"
+                Contact team for admin credentials
               </p>
             </CardContent>
           </Card>
