@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sprout, Telescope, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import heroImage from "@/assets/hero-plant-hands.jpg";
+import heroImage from "@/assets/landingpage.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ const Landing = () => {
                 {/* App Name */}
                 <div className="flex items-center justify-center lg:justify-start space-x-3 mb-8">
                   <Sprout className="h-10 w-10 text-plant-growth animate-leaf-sway" />
-                  <h1 className="text-4xl font-bold text-primary">Reach Together</h1>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">ReachTogether</h1>
                 </div>
 
                 {/* Main Title */}

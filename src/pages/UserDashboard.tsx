@@ -32,10 +32,6 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-gradient-water px-3 py-1 rounded-full">
-              <Droplets className="h-4 w-4 text-primary-foreground" />
-              <span className="text-sm font-medium text-primary-foreground">{userPoints} drops</span>
-            </div>
             <Badge variant="secondary">
               Welcome {user?.name}!
             </Badge>
@@ -69,70 +65,7 @@ const UserDashboard = () => {
           </TabsList>
 
           <TabsContent value="game" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-8">
-
-              {/* Plant Game */}
-              <div className="lg:col-span-1">
-                <Card className="shadow-plant">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sprout className="h-5 w-5 text-plant-growth" />
-                      Your Garden
-                    </CardTitle>
-                    <CardDescription>
-                      Grow your plant with every donation
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <PlantGame waterDrops={userPoints} />
-                  </CardContent>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card className="mt-6 shadow-soft">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button
-                      variant="nature"
-                      className="w-full"
-                      onClick={() => setActiveTab("donate")}
-                    >
-                      <Heart className="h-4 w-4 mr-2" />
-                      Make Donation
-                    </Button>
-                    <Button
-                      variant="earth"
-                      className="w-full"
-                      onClick={() => setActiveTab("leaderboard")}
-                    >
-                      <Trophy className="h-4 w-4 mr-2" />
-                      View Leaderboard
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Stats Cards */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <Card className="text-center shadow-soft">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold text-plant-growth">127</div>
-                      <p className="text-sm text-muted-foreground">Your Donations</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="text-center shadow-soft">
-                    <CardContent className="pt-6">
-                      <div className="text-2xl font-bold text-accent">15</div>
-                      <p className="text-sm text-muted-foreground">Schools Helped</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </div>
+            <PlantGame waterDrops={userPoints} />
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
