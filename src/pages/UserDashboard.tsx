@@ -50,22 +50,18 @@ const UserDashboard = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
             <TabsTrigger value="game" className="flex items-center gap-2">
               <Sprout className="h-4 w-4" />
               My Garden
             </TabsTrigger>
             <TabsTrigger value="feed" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Impact Stories
+              Forestry
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
               Leaderboard
-            </TabsTrigger>
-            <TabsTrigger value="donate" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Donate
             </TabsTrigger>
           </TabsList>
 
@@ -139,28 +135,28 @@ const UserDashboard = () => {
           <TabsContent value="feed" className="space-y-6">
             {/* Hong Kong Map */}
             <Card className="shadow-soft">
-  <CardHeader>
-    <CardTitle className="flex items-center gap-2">
-      <MapPin className="h-5 w-5 text-accent" />
-      Hong Kong Districts
-    </CardTitle>
-    <CardDescription>
-      Explore the districts where your donations make an impact
-    </CardDescription>
-  </CardHeader>
-  <CardContent>
-    <div className="w-full">
-      <HongKongMap />
-    </div>
-  </CardContent>
-</Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-accent" />
+                  Hong Kong Districts
+                </CardTitle>
+                <CardDescription>
+                  Explore the districts where your donations make an impact
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full h-[600px]">
+                  <HongKongMap height={600} />
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Impact Stories */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  Impact Stories
+                  Forestry
                 </CardTitle>
                 <CardDescription>
                   See the real difference your donations make
@@ -176,25 +172,6 @@ const UserDashboard = () => {
             <Leaderboard />
           </TabsContent>
 
-          <TabsContent value="donate" className="space-y-6">
-            <Card className="shadow-soft">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-accent" />
-                  Choose Your Impact Region
-                </CardTitle>
-                <CardDescription>
-                  Select a community or school to support
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RegionSelector
-                  selectedRegion={selectedRegion}
-                  onSelectRegion={setSelectedRegion}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </div>
     </div>

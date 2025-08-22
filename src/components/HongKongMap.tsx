@@ -41,9 +41,10 @@ interface SidePanelProps {
   stories: ImpactStory[];
   projects: DonationProject[];
   onClearSelection: () => void;
+  panelHeight?: number;
 }
 
-const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projects, onClearSelection }) => {
+const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projects, panelHeight, onClearSelection }) => {
   const filteredStories = selectedDistrict 
     ? stories.filter(story => story.district === selectedDistrict)
     : stories;
@@ -85,7 +86,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
           </Button>
         )}
       </CardHeader>
-      <CardContent className="overflow-y-auto pb-6" style={{ height: "calc(500px - 4rem)" }}>
+      <CardContent className="overflow-y-auto pb-6" style={{ height: `calc(${panelHeight}px - 4rem)` }}>
         <Tabs defaultValue="stories" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="stories" className="flex items-center gap-2">
@@ -139,65 +140,65 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
           </TabsContent>
 
           <TabsContent value="projects" className="mt-4">
-  {filteredProjects.length > 0 ? (
-    <div className="space-y-4">
-      {filteredProjects.map((project) => {
-        const progress = (project.raised / project.goal) * 100;
-        return (
-          <Card key={project.id} className="border-l-4 border-l-accent">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
-                  <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
-                    <Clock className="h-3 w-3 mr-1" />
-                    {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
-                  </Badge>
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {project.category}
-                </Badge>
-              </div>
-              
-              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                {project.description}
-              </p>
+              {filteredProjects.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredProjects.map((project) => {
+                    const progress = (project.raised / project.goal) * 100;
+                    return (
+                      <Card key={project.id} className="border-l-4 border-l-accent">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
+                              <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
+                                <Clock className="h-3 w-3 mr-1" />
+                                {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
+                              </Badge>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">
+                              {project.category}
+                            </Badge>
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                            {project.description}
+                          </p>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Progress</span>
-                  <span className="font-medium">{progress.toFixed(0)}% funded</span>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-medium">{progress.toFixed(0)}% funded</span>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1 text-sm">
+                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium text-plant-growth">
+                                    {formatCurrency(project.raised)}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    / {formatCurrency(project.goal)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Users className="h-4 w-4" />
+                                  <span>{project.supporters} supporters</span>
+                                </div>
+                              </div>
+                              <Button size="sm" variant="nature" className="whitespace-nowrap">
+                                <Heart className="h-3 w-3 mr-1" />
+                                Donate
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-                <Progress value={progress} className="h-2" />
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-plant-growth">
-                        {formatCurrency(project.raised)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        / {formatCurrency(project.goal)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Users className="h-4 w-4" />
-                      <span>{project.supporters} supporters</span>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="nature" className="whitespace-nowrap">
-                    <Heart className="h-3 w-3 mr-1" />
-                    Donate
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  ) : (
+              ) : (
               <div className="text-center py-8">
                 <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Active Projects</h3>
@@ -213,7 +214,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
   );
 };
 
-const HongKongMap = () => {
+const HongKongMap = ({ height = 500 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const mapInitialized = useRef<boolean>(false);
@@ -472,7 +473,8 @@ const HongKongMap = () => {
       <div className="md:col-span-2">
         <div 
           ref={mapContainer} 
-          className="w-full h-[500px] rounded-lg border border-border shadow-soft"
+          className="w-full rounded-lg border border-border shadow-soft"
+          style={{ height: `${height}px` }}
         />
       </div>
       <div className="md:col-span-1">
@@ -481,6 +483,7 @@ const HongKongMap = () => {
           stories={impactStories}
           projects={donationProjects}
           onClearSelection={clearSelection}
+          panelHeight={height}
         />
       </div>
     </div>
