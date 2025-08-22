@@ -279,25 +279,14 @@ const HongKongMap = () => {
         style: 'https://demotiles.maplibre.org/style.json',
         center: [114.1694, 22.3193],
         zoom: 9.6,
-        pitch: 60,
-        bearing: -20,
+        pitch: 50,
+        bearing: -10,
         antialias: true
       });
 
       map.current.addControl(new window.maplibregl.NavigationControl());
 
       map.current.on('load', async () => {
-        // Add 3D terrain
-        map.current.addSource('terrain', {
-          type: 'raster-dem',
-          tiles: [
-            'https://api.maptiler.com/tiles/terrain-rgb-v2/{z}/{x}/{y}.webp?key=47BVjuE0LN6ZJAbtklzE'
-          ],
-          tileSize: 512,
-          maxzoom: 12
-        });
-        map.current.setTerrain({ source: 'terrain', exaggeration: 2.0 });
-
         // Load Hong Kong districts data
         try {
           const res = await fetch('/hk-game/data/hk18.json');
