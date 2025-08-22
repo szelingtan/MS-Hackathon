@@ -139,19 +139,21 @@ const UserDashboard = () => {
           <TabsContent value="feed" className="space-y-6">
             {/* Hong Kong Map */}
             <Card className="shadow-soft">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-accent" />
-                  Hong Kong Districts
-                </CardTitle>
-                <CardDescription>
-                  Explore the districts where your donations make an impact
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <HongKongMap />
-              </CardContent>
-            </Card>
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <MapPin className="h-5 w-5 text-accent" />
+      Hong Kong Districts
+    </CardTitle>
+    <CardDescription>
+      Explore the districts where your donations make an impact
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div className="w-full">
+      <HongKongMap />
+    </div>
+  </CardContent>
+</Card>
 
             {/* Impact Stories */}
             <Card className="shadow-soft">
