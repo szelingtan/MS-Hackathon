@@ -26,6 +26,12 @@ interface ImpactStory {
   impact: string;
   date: string;
   image: string;
+  fullDescription?: string;
+  beneficiaries?: number;
+  volunteer?: string;
+  category?: string;
+  tags?: string[];
+  location?: string;
 }
 
 interface DonationProject {
@@ -50,6 +56,121 @@ interface SidePanelProps {
   panelHeight?: number;
 }
 
+const StoryDetailModal: React.FC<{
+  story: ImpactStory | null;
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ story, isOpen, onClose }) => {
+  if (!isOpen || !story) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-50"
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <div className="relative bg-white rounded-lg shadow-xl max-w-2xl max-h-[80vh] overflow-y-auto m-4 w-full">
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{story.title}</h2>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {story.district}
+                </span>
+                <span>{story.date}</span>
+                {story.category && (
+                  <Badge variant="secondary">{story.category}</Badge>
+                )}
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              ✕
+            </Button>
+          </div>
+
+          {/* Image */}
+          {story.image && (
+            <div className="mb-6">
+              <img 
+                src={story.image} 
+                alt={story.title}
+                className="w-full h-48 object-cover rounded-lg"
+              />
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold mb-2">Story</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {story.fullDescription || story.description}
+              </p>
+            </div>
+
+            <div>
+              <h3 className="font-semibold mb-2">Impact</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {story.impact}
+              </p>
+            </div>
+
+            {/* Additional details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {story.beneficiaries && (
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-accent" />
+                  <span className="text-sm">
+                    <strong>{story.beneficiaries}</strong> people helped
+                  </span>
+                </div>
+              )}
+              
+              {story.volunteer && (
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-accent" />
+                  <span className="text-sm">
+                    Volunteer: <strong>{story.volunteer}</strong>
+                  </span>
+                </div>
+              )}
+
+              {story.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-accent" />
+                  <span className="text-sm">
+                    Location: <strong>{story.location}</strong>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Tags */}
+            {story.tags && story.tags.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-2">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {story.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SidePanel: React.FC<SidePanelProps> = ({ 
   selectedDistrict, 
   stories, 
@@ -58,6 +179,20 @@ const SidePanel: React.FC<SidePanelProps> = ({
   onClearSelection,
   onDonate 
 }) => {
+  // Add state for story modal
+  const [selectedStory, setSelectedStory] = useState<ImpactStory | null>(null);
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+
+  // Add handler for story click
+  const handleStoryClick = (story: ImpactStory) => {
+    setSelectedStory(story);
+    setIsStoryModalOpen(true);
+  };
+
+  const closeStoryModal = () => {
+    setIsStoryModalOpen(false);
+    setSelectedStory(null);
+  };
   const filteredStories = selectedDistrict 
     ? stories.filter(story => story.district === selectedDistrict)
     : stories;
@@ -84,41 +219,48 @@ const SidePanel: React.FC<SidePanelProps> = ({
   };
 
   return (
-    <Card className="h-full shadow-xl overflow-hidden">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-accent" />
-            {selectedDistrict ? selectedDistrict : "All Districts"}
-          </div>
-          {selectedDistrict && (
-            <Button variant="ghost" size="sm" onClick={onClearSelection}>
-              <Filter className="h-4 w-4" />
-              Clear
-            </Button>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="overflow-y-auto pb-6" style={{ height: `calc(${panelHeight}px - 4rem)` }}>
-        <Tabs defaultValue="stories" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="stories">Stories</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
-          </TabsList>
-
+    <>
+      <Card className="h-full shadow-xl overflow-hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-accent" />
+              {selectedDistrict ? selectedDistrict : "All Districts"}
+            </div>
+            {selectedDistrict && (
+              <Button variant="ghost" size="sm" onClick={onClearSelection}>
+                <Filter className="h-4 w-4" />
+                Clear
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-y-auto pb-6" style={{ height: `calc(${panelHeight}px - 4rem)` }}>
+          <Tabs defaultValue="stories" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="stories">Stories</TabsTrigger>
+              <TabsTrigger value="projects">Projects</TabsTrigger>
+            </TabsList>
           <TabsContent value="stories" className="mt-4">
             {filteredStories.length > 0 ? (
               <div className="space-y-4">
                 {filteredStories.map((story) => (
-                  <Card key={story.id} className="border-l-4 border-l-plant-growth">
+                  <Card 
+                    key={story.id} 
+                    className="border-l-4 border-l-plant-growth cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleStoryClick(story)}
+                  >
                     <CardContent className="p-4">
                       <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
-                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
+                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-3">
                         {story.description}
                       </p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{story.district}</span>
                         <span>{story.date}</span>
+                      </div>
+                      <div className="mt-2 text-xs text-accent hover:text-accent/80">
+                        Click to read full story →
                       </div>
                     </CardContent>
                   </Card>
@@ -134,7 +276,6 @@ const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             )}
           </TabsContent>
-
           <TabsContent value="projects" className="mt-4">
             {filteredProjects.length > 0 ? (
               <div className="space-y-4">
@@ -209,9 +350,17 @@ const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             )}
           </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Story Detail Modal */}
+      <StoryDetailModal
+        story={selectedStory}
+        isOpen={isStoryModalOpen}
+        onClose={closeStoryModal}
+      />
+    </>
   );
 };
 

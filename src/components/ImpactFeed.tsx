@@ -19,6 +19,8 @@ interface ImpactStory {
   isLiked?: boolean;
 }
 
+// Curr not being used!
+
 const ImpactFeed = () => {
   const [stories, setStories] = useState<ImpactStory[]>([]);
   const [selectedDistrict, setSelectedDistrict] = useState("all");
