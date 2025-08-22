@@ -83,21 +83,11 @@ const UserDashboard = () => {
     try {
       // If we have a specific project, use its details for Firestore
       if (currentProject) {
-        // Map district names to IDs (this would ideally be more sophisticated)
-        const districtNameToId: { [key: string]: number } = {
-          "Hong Kong Island": 1,
-          "Kowloon": 2,
-          "New Territories": 3,
-          "Outlying Islands": 4
-        };
-        
-        const districtId = districtNameToId[currentProject.district] || 1;
-        
-        // Process donation through Firestore
+        // Use project ID as both target_district_id and project_id
         const result = await processDonation(
           donationAmount, 
-          districtId, 
-          currentProject.id, 
+          currentProject.id, // Use project ID as target_district_id
+          currentProject.id, // Use project ID as project_id
           currentProject.title
         );
 
