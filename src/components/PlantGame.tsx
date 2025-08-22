@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,11 @@ interface PlantOutfit {
 }
 
 const PlantGame = ({ waterDrops }: PlantGameProps) => {
+  // Debug: Log when waterDrops prop changes
+  useEffect(() => {
+    console.log('PlantGame received waterDrops:', waterDrops);
+  }, [waterDrops]);
+
   const [dailyVotes, setDailyVotes] = useState(47);
   const [currentRank, setCurrentRank] = useState(12);
   const [selectedPlant, setSelectedPlant] = useState<string>("seedling");
