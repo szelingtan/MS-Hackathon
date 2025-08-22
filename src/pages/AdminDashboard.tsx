@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import CreatePost from "@/components/CreatePost";
 
 type TimeRangeKey = '3months' | '6months' | '1year';
 type NavTab =
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('6months');
   const [navTab, setNavTab] = useState<NavTab>('overview'); // NEW: navigation
+  const [posts, setPosts] = useState<PostType[]>([]);
 
   // --- Mock donor data ---
   const mockDonors = [
@@ -490,6 +492,12 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <CreatePost onSubmit={(post) => {
+              setPosts((prev) => [...prev, post]);
+              console.log("New post saved:", post);
+            }} />
+
+
             <Badge variant="secondary">Admin: {user?.name}</Badge>
             <div className="flex space-x-2">
               <select
