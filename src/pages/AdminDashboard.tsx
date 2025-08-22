@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import {
   Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target,
-  MapPin, MessageCircle, Shield, LogOut, LayoutGrid, Activity, PieChart as PieIcon, Layers
+  MapPin, MessageCircle, Shield, LogOut, LayoutGrid, Activity, PieChart as PieIcon, Layers,
+  LucideIcon
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +27,7 @@ type NavTab =
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('6months');
   const [navTab, setNavTab] = useState<NavTab>('overview'); // NEW: navigation
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -102,8 +105,48 @@ const AdminDashboard = () => {
   const premiumDonors = mockDonors.filter(d => d.status === "Premium").length;
 
   // --- Time-series data (kept) ---
-  const dataByPeriod: Record<TimeRangeKey, any> = {
+  const dataByPeriod: Record<TimeRangeKey, {
+    donations: Array<{ date: string; amount: number; count: number }>;
+    growth: Array<{ date: string; users: number; growth: number }>;
+    status: Array<{ name: string; value: number; color: string }>;
+    monthly: Array<{ 
+      month: string; 
+      donors: number; 
+      amount: number; 
+      newDonors: number; 
+      retention: number;
+      date?: string;
+      count?: number;
+      users?: number;
+      growth?: number;
+    }>;
+    totalDonors: number;
+    totalRaised: number;
+    retention: number;
+    socialReach: number;
+    trends: {
+      donors: number;
+      amount: number;
+      retention: number;
+      social: number;
+    };
+  }> = {
     '3months': {
+      donations: [
+        { date: 'Jun', amount: Math.floor(totalRaised * 0.3), count: Math.floor(totalDonors * 0.6) },
+        { date: 'Jul', amount: Math.floor(totalRaised * 0.6), count: Math.floor(totalDonors * 0.8) },
+        { date: 'Aug', amount: totalRaised, count: totalDonors }
+      ],
+      growth: [
+        { date: 'Jun', users: Math.floor(totalDonors * 0.6), growth: 15.2 },
+        { date: 'Jul', users: Math.floor(totalDonors * 0.8), growth: 20.8 },
+        { date: 'Aug', users: totalDonors, growth: 25.0 }
+      ],
+      status: [
+        { name: 'Active', value: 68, color: '#10B981' },
+        { name: 'Pending', value: 22, color: '#F59E0B' },
+        { name: 'Completed', value: 10, color: '#6366F1' }
+      ],
       monthly: [
         { month: 'Jun', donors: Math.floor(totalDonors * 0.6), amount: Math.floor(totalRaised * 0.3), newDonors: 3, retention: 85 },
         { month: 'Jul', donors: Math.floor(totalDonors * 0.8), amount: Math.floor(totalRaised * 0.6), newDonors: 4, retention: 88 },
@@ -113,6 +156,27 @@ const AdminDashboard = () => {
       trends: { donors: 15.2, amount: 28.5, retention: 4.1, social: 18.7 }
     },
     '6months': {
+      donations: [
+        { date: 'Mar', amount: Math.floor(totalRaised * 0.15), count: Math.floor(totalDonors * 0.25) },
+        { date: 'Apr', amount: Math.floor(totalRaised * 0.25), count: Math.floor(totalDonors * 0.35) },
+        { date: 'May', amount: Math.floor(totalRaised * 0.4), count: Math.floor(totalDonors * 0.5) },
+        { date: 'Jun', amount: Math.floor(totalRaised * 0.55), count: Math.floor(totalDonors * 0.65) },
+        { date: 'Jul', amount: Math.floor(totalRaised * 0.75), count: Math.floor(totalDonors * 0.8) },
+        { date: 'Aug', amount: totalRaised, count: totalDonors }
+      ],
+      growth: [
+        { date: 'Mar', users: Math.floor(totalDonors * 0.25), growth: 5.0 },
+        { date: 'Apr', users: Math.floor(totalDonors * 0.35), growth: 8.2 },
+        { date: 'May', users: Math.floor(totalDonors * 0.5), growth: 12.5 },
+        { date: 'Jun', users: Math.floor(totalDonors * 0.65), growth: 16.8 },
+        { date: 'Jul', users: Math.floor(totalDonors * 0.8), growth: 20.8 },
+        { date: 'Aug', users: totalDonors, growth: 25.0 }
+      ],
+      status: [
+        { name: 'Active', value: 62, color: '#10B981' },
+        { name: 'Pending', value: 28, color: '#F59E0B' },
+        { name: 'Completed', value: 10, color: '#6366F1' }
+      ],
       monthly: [
         { month: 'Mar', donors: Math.floor(totalDonors * 0.25), amount: Math.floor(totalRaised * 0.15), newDonors: 2, retention: 78 },
         { month: 'Apr', donors: Math.floor(totalDonors * 0.35), amount: Math.floor(totalRaised * 0.25), newDonors: 3, retention: 82 },
@@ -125,6 +189,39 @@ const AdminDashboard = () => {
       trends: { donors: 26.8, amount: 35.6, retention: 8.2, social: 34.5 }
     },
     '1year': {
+      donations: [
+        { date: 'Sep', amount: Math.floor(totalRaised * 0.05), count: Math.floor(totalDonors * 0.08) },
+        { date: 'Oct', amount: Math.floor(totalRaised * 0.08), count: Math.floor(totalDonors * 0.12) },
+        { date: 'Nov', amount: Math.floor(totalRaised * 0.12), count: Math.floor(totalDonors * 0.17) },
+        { date: 'Dec', amount: Math.floor(totalRaised * 0.18), count: Math.floor(totalDonors * 0.22) },
+        { date: 'Jan', amount: Math.floor(totalRaised * 0.25), count: Math.floor(totalDonors * 0.28) },
+        { date: 'Feb', amount: Math.floor(totalRaised * 0.32), count: Math.floor(totalDonors * 0.35) },
+        { date: 'Mar', amount: Math.floor(totalRaised * 0.38), count: Math.floor(totalDonors * 0.42) },
+        { date: 'Apr', amount: Math.floor(totalRaised * 0.48), count: Math.floor(totalDonors * 0.55) },
+        { date: 'May', amount: Math.floor(totalRaised * 0.62), count: Math.floor(totalDonors * 0.68) },
+        { date: 'Jun', amount: Math.floor(totalRaised * 0.75), count: Math.floor(totalDonors * 0.78) },
+        { date: 'Jul', amount: Math.floor(totalRaised * 0.87), count: Math.floor(totalDonors * 0.88) },
+        { date: 'Aug', amount: totalRaised, count: totalDonors }
+      ],
+      growth: [
+        { date: 'Sep', users: Math.floor(totalDonors * 0.08), growth: 2.0 },
+        { date: 'Oct', users: Math.floor(totalDonors * 0.12), growth: 3.5 },
+        { date: 'Nov', users: Math.floor(totalDonors * 0.17), growth: 5.2 },
+        { date: 'Dec', users: Math.floor(totalDonors * 0.22), growth: 7.0 },
+        { date: 'Jan', users: Math.floor(totalDonors * 0.28), growth: 9.1 },
+        { date: 'Feb', users: Math.floor(totalDonors * 0.35), growth: 11.5 },
+        { date: 'Mar', users: Math.floor(totalDonors * 0.42), growth: 14.2 },
+        { date: 'Apr', users: Math.floor(totalDonors * 0.55), growth: 17.3 },
+        { date: 'May', users: Math.floor(totalDonors * 0.68), growth: 20.7 },
+        { date: 'Jun', users: Math.floor(totalDonors * 0.78), growth: 23.2 },
+        { date: 'Jul', users: Math.floor(totalDonors * 0.88), growth: 24.5 },
+        { date: 'Aug', users: totalDonors, growth: 25.0 }
+      ],
+      status: [
+        { name: 'Active', value: 55, color: '#10B981' },
+        { name: 'Pending', value: 32, color: '#F59E0B' },
+        { name: 'Completed', value: 13, color: '#6366F1' }
+      ],
       monthly: [
         { month: 'Sep', donors: Math.floor(totalDonors * 0.08), amount: Math.floor(totalRaised * 0.05), newDonors: 1, retention: 65 },
         { month: 'Oct', donors: Math.floor(totalDonors * 0.12), amount: Math.floor(totalRaised * 0.08), newDonors: 1, retention: 68 },
@@ -175,7 +272,7 @@ const AdminDashboard = () => {
     // Distribute donors to sum exactly to totalDonors (round robin to fix rounding drift)
     const donorAllocFloat = baseWeights.map(w => (w / weightSum) * totalDonors);
     const donorAlloc = donorAllocFloat.map(Math.floor);
-    let remaining = totalDonors - donorAlloc.reduce((s, n) => s + n, 0);
+    const remaining = totalDonors - donorAlloc.reduce((s, n) => s + n, 0);
     // add the remaining donors to the largest fractional remainders
     const remainders = donorAllocFloat.map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
       .sort((a, b) => b.frac - a.frac);
@@ -209,7 +306,7 @@ const AdminDashboard = () => {
 
   // --- UI pieces (kept) ---
   const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass = "text-plant-growth" }:{
-    title: string; value: string; subtitle?: string; icon: any; trend?: number; colorClass?: string;
+    title: string; value: string; subtitle?: string; icon: LucideIcon; trend?: number; colorClass?: string;
   }) => (
     <Card className="shadow-soft">
       <CardContent className="pt-6">
@@ -232,7 +329,7 @@ const AdminDashboard = () => {
   );
 
   const MetricCard = ({ title, value, growth, icon: Icon }:{
-    title: string; value: number; growth: number; icon: any;
+    title: string; value: number; growth: number; icon: LucideIcon;
   }) => (
     <div className="bg-muted/30 rounded-lg p-4 border border-border/30">
       <div className="flex items-center justify-between mb-2">
@@ -244,7 +341,10 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const handleLogout = () => logout();
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   // --- Page sections (same design, split by tab) ---
   const DonationTrendsCard = () => (
@@ -364,7 +464,7 @@ const AdminDashboard = () => {
           const numB = parseInt(b.district.split(" ")[1], 10);
           return numA - numB;
         }),
-      [geographicData]
+      []
     );
   
     return (
@@ -471,7 +571,7 @@ const AdminDashboard = () => {
   );
 
   // --- Navigation items ---
-  const NAV_ITEMS: { key: NavTab; label: string; icon: any }[] = [
+  const NAV_ITEMS: { key: NavTab; label: string; icon: LucideIcon }[] = [
     { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
     { key: 'donationTrends',     label: 'Donation Trends',        icon: Activity },
     { key: 'donorGrowth',        label: 'Donor Growth & Retention',icon: Users },

@@ -1,3 +1,7 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import ImpactFeed from "@/components/ImpactFeed";
 import Leaderboard from "@/components/Leaderboard";
 import PlantGame from "@/components/PlantGame";
@@ -5,17 +9,13 @@ import HongKongMap from "@/components/HongKongMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/hooks/use-auth";
-import { useGardenBackend } from "@/hooks/useGardenBackend";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
+import { useGardenBackend } from "@/hooks/useGardenBackend";
 
 interface DonationProject {
   id: number;
@@ -31,14 +31,23 @@ interface DonationProject {
 }
 
 const UserDashboard = () => {
-  const { user, logout, updateWaterAmount, updateDonatedAmount } = useAuth();
+  const { user, logout, processDonation } = useAuth();
   const { addWaterDrops } = useGardenBackend();
   const [activeTab, setActiveTab] = useState("game");
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const navigate = useNavigate();
+
+  // Debug: Log when user water amount changes
+  useEffect(() => {
+    if (user) {
+      console.log('User water amount updated:', user.water_amount);
+      console.log('User donated amount updated:', user.donated_amount);
+    }
+  }, [user]);
 
   const goToProfile = () => {
     navigate('/profile');
@@ -50,9 +59,14 @@ const UserDashboard = () => {
   };
   
   const handleProjectDonate = (project: DonationProject) => {
+    // Set the current project and open the donation dialog
     setCurrentProject(project);
-    setDonationAmount(10);
     setIsDonationDialogOpen(true);
+  };
+
+  const handleDonationUpdate = () => {
+    // Called after donation is processed to refresh data
+    // This could be used to refetch user stats or project data
   };
 
   const handleDonation = async () => {
@@ -61,26 +75,50 @@ const UserDashboard = () => {
       return;
     }
 
+    if (!user) {
+      toast.error("Please log in to make a donation");
+      return;
+    }
+
+    setIsProcessing(true);
+
     try {
-      // Update donated amount and give water drops (1 drop per dollar as per challenge design)
-      const waterDropsEarned = donationAmount;
-      
-      await updateDonatedAmount(donationAmount);
-      await updateWaterAmount(waterDropsEarned);
+      // If we have a specific project, use its details for Firestore
+      if (currentProject) {
+        // Use project ID as both target_district_id and project_id
+        const result = await processDonation(
+          donationAmount, 
+          currentProject.id, // Use project ID as target_district_id
+          currentProject.id, // Use project ID as project_id
+          currentProject.title
+        );
+
+        // Show success message with the water drops earned from processDonation
+        toast.success(`Thank you for donating $${donationAmount} to ${currentProject.title}! You received ${result.waterDropsEarned} water drops! 💧`);
+      } else {
+        // General donation without specific project
+        const result = await processDonation(donationAmount, 1);
+        
+        // Show success message with the water drops earned from processDonation
+        toast.success(`Thank you for donating $${donationAmount}! You received ${result.waterDropsEarned} water drops! 💧`);
+      }
       
       // Also update garden backend
+      const waterDropsEarned = Math.floor(donationAmount * 5);
       await addWaterDrops(waterDropsEarned);
       
-      // Close dialog and show success message
+      // Close dialog and reset form
       setIsDonationDialogOpen(false);
-      toast.success(`Thank you for donating $${donationAmount}${currentProject ? ' to ' + currentProject.title : ''}! You received ${waterDropsEarned} water drops! 💧`);
-      
-      // Reset for next time
       setDonationAmount(10);
       setCurrentProject(null);
+
+      // Trigger any update callbacks
+      handleDonationUpdate();
     } catch (error) {
       console.error("Error processing donation:", error);
       toast.error("There was an error processing your donation. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -108,6 +146,16 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4">
+              <Badge variant="secondary" className="flex items-center gap-2">
+                <Droplets className="h-4 w-4" />
+                {user.water_amount} drops
+              </Badge>
+              <Badge variant="outline" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                ${user.donated_amount} donated
+              </Badge>
+            </div>
             <Badge variant="secondary">
               Welcome {user.name}!
             </Badge>
@@ -156,7 +204,11 @@ const UserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="w-full h-[600px]">
-                  <HongKongMap height={600} onDonate={handleProjectDonate} />
+                  <HongKongMap 
+                    height={600} 
+                    onDonationUpdate={handleDonationUpdate} 
+                    onProjectDonate={handleProjectDonate}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -223,9 +275,13 @@ const UserDashboard = () => {
             <Button variant="outline" onClick={() => setIsDonationDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="nature" onClick={handleDonation}>
+            <Button 
+              variant="nature" 
+              onClick={handleDonation} 
+              disabled={isProcessing}
+            >
               <Heart className="h-4 w-4 mr-2" />
-              Donate ${donationAmount}
+              {isProcessing ? "Processing..." : `Donate $${donationAmount}`}
             </Button>
           </DialogFooter>
         </DialogContent>
