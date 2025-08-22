@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>HK Region Click Demo (MapLibre)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    #info {
+      position: absolute; top: 10px; left: 10px; z-index: 3;
+      background: #fff; border-radius: 8px; padding: 8px 10px;
+      font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    #sidePanel {
+      position: absolute; top: 10px; right: 10px; z-index: 3;
+      width: 300px; background: #fff; border-radius: 8px; padding: 20px;
+      font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      display: none;
+    }
+    #sidePanel h3 { margin: 0 0 10px; color: #333; }
+    #sidePanel .close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 18px; color: #666; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="info">Click a district…</div>
+  <div id="sidePanel">
+    <span class="close-btn">&times;</span>
+    <h3 id="panelTitle">District Info</h3>
+    <div id="panelContent">Select a district to see details</div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+  <!-- Turf for bbox + mask -->
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+  <script>
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://demotiles.maplibre.org/style.json',
+      center: [114.1694, 22.3193],
+      zoom: 9.6,
+      pitch: 60,
+      bearing: -20,
+      hash: true,
+      antialias: true
+    });
+    map.addControl(new maplibregl.NavigationControl());
+
+    map.on('load', async () => {
+      // --- 3D TERRAIN (using free terrain tiles) ---
+      map.addSource('terrain', {
+        type: 'raster-dem',
+        tiles: [
+          'https://api.maptiler.com/tiles/terrain-rgb-v2/{z}/{x}/{y}.webp?key=47BVjuE0LN6ZJAbtklzE'
+        ],
+        tileSize: 512,
+        maxzoom: 12
+      });
+      map.setTerrain({ source: 'terrain', exaggeration: 2.0 });
+
+      // --- Hong Kong districts source ---
+      const res = await fetch('data/hk18.json');
+      const geojson = await res.json();
+      
+      // Ensure each feature has a proper ID using properties or index
+      geojson.features.forEach((f, i) => { 
+        // Use a property from the feature as ID if available, otherwise use index
+        f.id = f.properties.OBJECTID || f.properties.FID || i;
+      });
+
+      map.addSource('hk', { type: 'geojson', data: geojson });
+
+      // --- Dynamic mask that brightens when region is selected ---
+      const maskFeature = turf.mask(geojson);
+      map.addSource('outside-mask', { type: 'geojson', data: maskFeature });
+      map.addLayer({
+        id: 'outside-mask-fill',
+        type: 'fill',
+        source: 'outside-mask',
+        paint: { 
+          'fill-color': '#000', 
+          'fill-opacity': 0.3
+        }
+      });
+
+      // --- District fills/lines for interaction ---
+      map.addLayer({
+        id: 'hk-fill',
+        type: 'fill',
+        source: 'hk',
+        paint: {
+          'fill-color': [
+            'case',
+            ['==', ['feature-state', 'selected'], true], '#ffcc00',
+            ['==', ['feature-state', 'hover'], true], '#f28cb1',
+            'rgba(0,0,0,0)'
+          ],
+          'fill-opacity': 1
+        }
+      });
+
+      map.addLayer({
+        id: 'hk-outline',
+        type: 'line',
+        source: 'hk',
+        paint: {
+          'line-color': [
+            'case',
+            ['==', ['feature-state', 'selected'], true], '#000',
+            ['==', ['feature-state', 'hover'], true], '#fff',
+            '#2d3a6a'
+          ],
+          'line-width': [
+            'case',
+            ['==', ['feature-state', 'selected'], true], 3,
+            ['==', ['feature-state', 'hover'], true], 2,
+            1
+          ]
+        }
+      });
+
+      // --- 3D extrusion with basic properties ---
+      map.addLayer({
+        id: 'hk-extrude',
+        type: 'fill-extrusion',
+        source: 'hk',
+        filter: ['==', ['id'], -1],
+        paint: {
+          'fill-extrusion-color': '#ffcc00',
+          'fill-extrusion-height': 800,
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 0.3
+        }
+      });
+
+      let hoveredId = null;
+      let selectedId = null;
+
+      const sidePanel = document.getElementById('sidePanel');
+      const panelTitle = document.getElementById('panelTitle');
+      const panelContent = document.getElementById('panelContent');
+      const closeBtn = document.querySelector('.close-btn');
+
+      // Function to update mask brightness
+      function updateMaskBrightness(isRegionSelected) {
+        map.setPaintProperty('outside-mask-fill', 'fill-opacity', isRegionSelected ? 0.1 : 0.3);
+      }
+
+      map.on('mousemove', 'hk-fill', (e) => {
+        if (!e.features.length) return;
+        const id = e.features[0].id;
+        
+        if (id === undefined || id === null) return;
+        
+        if (hoveredId !== null && hoveredId !== undefined) {
+          map.setFeatureState({ source: 'hk', id: hoveredId }, { hover: false });
+        }
+        hoveredId = id;
+        map.setFeatureState({ source: 'hk', id: hoveredId }, { hover: true });
+        map.getCanvas().style.cursor = 'pointer';
+      });
+
+      map.on('mouseleave', 'hk-fill', () => {
+        if (hoveredId !== null && hoveredId !== undefined) {
+          map.setFeatureState({ source: 'hk', id: hoveredId }, { hover: false });
+        }
+        hoveredId = null;
+        map.getCanvas().style.cursor = '';
+      });
+
+      map.on('click', 'hk-fill', (e) => {
+        if (!e.features.length) return;
+        const f = e.features[0];
+        const id = f.id;
+        
+        if (id === undefined || id === null) return;
+
+        // Clear previous selection
+        if (selectedId !== null && selectedId !== undefined) {
+          map.setFeatureState({ source: 'hk', id: selectedId }, { selected: false });
+        }
+        
+        selectedId = id;
+        map.setFeatureState({ source: 'hk', id: selectedId }, { selected: true });
+        map.setFilter('hk-extrude', ['==', ['id'], selectedId]);
+        updateMaskBrightness(true);
+
+        const props = f.properties || {};
+        const district = props['District'] || props['DISTRICT'] || props['name'] || 'Unknown district';
+        document.getElementById('info').textContent = `Selected: ${district}`;
+
+        panelTitle.textContent = district;
+        panelContent.innerHTML = `
+          <p><strong>District:</strong> ${district}</p>
+          <p><strong>Feature ID:</strong> ${id}</p>
+          <p><strong>Properties:</strong></p>
+          <pre style="background:#f5f5f5;padding:10px;border-radius:4px;font-size:12px;overflow-x:auto;">${JSON.stringify(props, null, 2)}</pre>
+        `;
+        sidePanel.style.display = 'block';
+
+        const bbox = turf.bbox(f);
+        map.fitBounds(bbox, { padding: 50, duration: 1000 });
+      });
+      
+
+      closeBtn.addEventListener('click', () => {
+        sidePanel.style.display = 'none';
+        if (selectedId !== null && selectedId !== undefined) {
+          map.setFeatureState({ source: 'hk', id: selectedId }, { selected: false });
+          selectedId = null;
+        }
+        map.setFilter('hk-extrude', ['==', ['id'], -1]);
+        updateMaskBrightness(false);
+      });
+    });
+  </script>
+</body>
+</html>

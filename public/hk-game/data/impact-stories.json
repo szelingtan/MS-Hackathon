@@ -1,0 +1,164 @@
+[
+  {
+    "id": 1,
+    "district": "Central & Western",
+    "title": "New Learning Center Opens in Central",
+    "description": "Thanks to your donations, we've opened a new after-school learning center that serves 50 students daily.",
+    "impact": "50 students supported",
+    "date": "2 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 2,
+    "district": "Wan Chai",
+    "title": "Digital Library Project Completed",
+    "description": "The new digital library in Wan Chai is now fully operational with tablets and high-speed internet.",
+    "impact": "200+ students have access",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 3,
+    "district": "Eastern",
+    "title": "Breakfast Program Success",
+    "description": "Our nutrition program in Eastern district has provided over 1,000 healthy meals this month.",
+    "impact": "120 children fed daily",
+    "date": "3 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 4,
+    "district": "Southern",
+    "title": "Science Lab Renovation",
+    "description": "The renovated science laboratory in Southern district now has modern equipment for hands-on learning.",
+    "impact": "300 students benefit",
+    "date": "5 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 5,
+    "district": "Yau Tsim Mong",
+    "title": "English Tutoring Program",
+    "description": "Weekly English tutoring sessions are helping students improve their language skills significantly.",
+    "impact": "80 students enrolled",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 6,
+    "district": "Sham Shui Po",
+    "title": "Computer Skills Workshop",
+    "description": "Basic computer literacy program helping students prepare for the digital age.",
+    "impact": "60 students trained",
+    "date": "4 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 7,
+    "district": "Kowloon City",
+    "title": "Arts and Crafts Program",
+    "description": "Creative workshops are fostering artistic expression and building confidence in young minds.",
+    "impact": "40 students participating",
+    "date": "6 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 8,
+    "district": "Wong Tai Sin",
+    "title": "Mathematics Support Classes",
+    "description": "Extra math support is helping struggling students catch up with their peers.",
+    "impact": "35 students improving",
+    "date": "2 weeks ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 9,
+    "district": "Kwun Tong",
+    "title": "Sports Equipment Donation",
+    "description": "New sports equipment encourages physical activity and teamwork among students.",
+    "impact": "150 students active",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 10,
+    "district": "Tsuen Wan",
+    "title": "Library Book Drive Success",
+    "description": "Community book drive has added 500 new books to the local school library.",
+    "impact": "500+ new books",
+    "date": "3 weeks ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 11,
+    "district": "Tuen Mun",
+    "title": "Community Garden Initiative",
+    "description": "Students are learning about sustainability through hands-on gardening experiences.",
+    "impact": "25 students involved",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 12,
+    "district": "Yuen Long",
+    "title": "Mobile Learning Lab",
+    "description": "Our mobile computer lab brings technology education directly to rural schools.",
+    "impact": "180 students reached",
+    "date": "2 weeks ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 13,
+    "district": "North",
+    "title": "Reading Buddy Program",
+    "description": "Older students mentor younger ones in reading, creating a supportive learning environment.",
+    "impact": "60 reading pairs",
+    "date": "5 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 14,
+    "district": "Tai Po",
+    "title": "STEM Workshop Series",
+    "description": "Weekly science, technology, engineering and math workshops spark curiosity and innovation.",
+    "impact": "90 students engaged",
+    "date": "3 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 15,
+    "district": "Sha Tin",
+    "title": "Music Therapy Program",
+    "description": "Music therapy sessions help students with special needs develop communication and social skills.",
+    "impact": "30 students supported",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 16,
+    "district": "Kwai Tsing",
+    "title": "Career Guidance Initiative",
+    "description": "Professional mentors guide students in career planning and skill development.",
+    "impact": "75 students mentored",
+    "date": "4 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 17,
+    "district": "Sai Kung",
+    "title": "Environmental Conservation Project",
+    "description": "Students participate in beach cleanups and marine conservation awareness programs.",
+    "impact": "100 students participated",
+    "date": "6 days ago",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 18,
+    "district": "Islands",
+    "title": "Ferry Learning Support",
+    "description": "Educational support for students who need to travel by ferry to attend school.",
+    "impact": "20 students assisted",
+    "date": "1 week ago",
+    "image": "/api/placeholder/300/200"
+  }
+]
