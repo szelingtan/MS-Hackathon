@@ -13,6 +13,11 @@ declare global {
   }
 }
 
+interface HongKongMapProps {
+  height?: number;
+  onDonate?: (project: DonationProject) => void;
+}
+
 interface ImpactStory {
   id: number;
   district: string;
@@ -41,10 +46,18 @@ interface SidePanelProps {
   stories: ImpactStory[];
   projects: DonationProject[];
   onClearSelection: () => void;
+  onDonate: (project: DonationProject) => void;
   panelHeight?: number;
 }
 
-const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projects, panelHeight, onClearSelection }) => {
+const SidePanel: React.FC<SidePanelProps> = ({ 
+  selectedDistrict, 
+  stories, 
+  projects, 
+  panelHeight = 500, 
+  onClearSelection,
+  onDonate 
+}) => {
   const filteredStories = selectedDistrict 
     ? stories.filter(story => story.district === selectedDistrict)
     : stories;
@@ -72,31 +85,25 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
 
   return (
     <Card className="h-full shadow-xl overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-accent" />
-          <CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-accent" />
             {selectedDistrict ? selectedDistrict : "All Districts"}
-          </CardTitle>
-        </div>
-        {selectedDistrict && (
-          <Button variant="ghost" size="sm" onClick={onClearSelection}>
-            <Filter className="h-4 w-4 mr-1" />
-            Clear Filter
-          </Button>
-        )}
+          </div>
+          {selectedDistrict && (
+            <Button variant="ghost" size="sm" onClick={onClearSelection}>
+              <Filter className="h-4 w-4" />
+              Clear
+            </Button>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent className="overflow-y-auto pb-6" style={{ height: `calc(${panelHeight}px - 4rem)` }}>
         <Tabs defaultValue="stories" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="stories" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Impact Stories ({filteredStories.length})
-            </TabsTrigger>
-            <TabsTrigger value="projects" className="flex items-center gap-2">
-              <Heart className="h-4 w-4" />
-              Donation Projects ({filteredProjects.length})
-            </TabsTrigger>
+            <TabsTrigger value="stories">Stories</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stories" className="mt-4">
@@ -105,24 +112,13 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
                 {filteredStories.map((story) => (
                   <Card key={story.id} className="border-l-4 border-l-plant-growth">
                     <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-sm text-foreground">{story.title}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          {story.date}
-                        </Badge>
-                      </div>
+                      <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
                       <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                         {story.description}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-plant-growth font-medium">
-                          <Heart className="h-3 w-3" />
-                          {story.impact}
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          <Users className="h-3 w-3 mr-1" />
-                          {story.district}
-                        </Badge>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{story.district}</span>
+                        <span>{story.date}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -140,65 +136,70 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
           </TabsContent>
 
           <TabsContent value="projects" className="mt-4">
-              {filteredProjects.length > 0 ? (
-                <div className="space-y-4">
-                  {filteredProjects.map((project) => {
-                    const progress = (project.raised / project.goal) * 100;
-                    return (
-                      <Card key={project.id} className="border-l-4 border-l-accent">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
-                              <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
-                                <Clock className="h-3 w-3 mr-1" />
-                                {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
-                              </Badge>
-                            </div>
-                            <Badge variant="secondary" className="text-xs">
-                              {project.category}
+            {filteredProjects.length > 0 ? (
+              <div className="space-y-4">
+                {filteredProjects.map((project) => {
+                  const progress = (project.raised / project.goal) * 100;
+                  return (
+                    <Card key={project.id} className="border-l-4 border-l-accent">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
+                            <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
+                              <Clock className="h-3 w-3 mr-1" />
+                              {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
                             </Badge>
                           </div>
-                          
-                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                            {project.description}
-                          </p>
+                          <Badge variant="secondary" className="text-xs">
+                            {project.category}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                          {project.description}
+                        </p>
 
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">Progress</span>
-                              <span className="font-medium">{progress.toFixed(0)}% funded</span>
-                            </div>
-                            <Progress value={progress} className="h-2" />
-                            
-                            <div className="flex items-center justify-between">
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1 text-sm">
-                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                  <span className="font-medium text-plant-growth">
-                                    {formatCurrency(project.raised)}
-                                  </span>
-                                  <span className="text-muted-foreground">
-                                    / {formatCurrency(project.goal)}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Users className="h-4 w-4" />
-                                  <span>{project.supporters} supporters</span>
-                                </div>
-                              </div>
-                              <Button size="sm" variant="nature" className="whitespace-nowrap">
-                                <Heart className="h-3 w-3 mr-1" />
-                                Donate
-                              </Button>
-                            </div>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">{progress.toFixed(0)}% funded</span>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              ) : (
+                          <Progress value={progress} className="h-2" />
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1 text-sm">
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium text-plant-growth">
+                                  {formatCurrency(project.raised)}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  / {formatCurrency(project.goal)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Users className="h-4 w-4" />
+                                <span>{project.supporters} supporters</span>
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              variant="nature" 
+                              className="whitespace-nowrap"
+                              onClick={() => onDonate(project)}
+                            >
+                              <Heart className="h-3 w-3 mr-1" />
+                              Donate
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
               <div className="text-center py-8">
                 <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Active Projects</h3>
@@ -214,7 +215,7 @@ const SidePanel: React.FC<SidePanelProps> = ({ selectedDistrict, stories, projec
   );
 };
 
-const HongKongMap = ({ height = 500 }) => {
+const HongKongMap = ({ height = 500, onDonate }: HongKongMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const mapInitialized = useRef<boolean>(false);
@@ -483,11 +484,13 @@ const HongKongMap = ({ height = 500 }) => {
           stories={impactStories}
           projects={donationProjects}
           onClearSelection={clearSelection}
+          onDonate={onDonate || (() => {})}
           panelHeight={height}
         />
       </div>
     </div>
   );
 };
+
 
 export default HongKongMap;

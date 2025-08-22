@@ -7,9 +7,29 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress"; // Add this import
 import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import { useState } from "react";
+
+
+// Add this interface for the project data
+interface DonationProject {
+  id: number;
+  district: string;
+  title: string;
+  description: string;
+  goal: number;
+  raised: number;
+  supporters: number;
+  urgency: 'low' | 'medium' | 'high';
+  category: string;
+  image: string;
+}
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
@@ -17,9 +37,69 @@ const UserDashboard = () => {
   const [userPoints, setUserPoints] = useState(250);
   const [showDonationFlow, setShowDonationFlow] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
-
+  const [donationAmount, setDonationAmount] = useState(10);
+  const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
+  const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
+  
   const handleLogout = () => {
     logout();
+  };
+  
+  // Handler for project-specific donations
+  const handleProjectDonate = (project: DonationProject) => {
+    setCurrentProject(project);
+    setSelectedRegion(project.district);
+    setDonationAmount(10); // Default amount or you can set a different default
+    setIsDonationDialogOpen(true);
+  };
+
+  const handleDonation = async () => {
+    if (donationAmount <= 0) {
+      toast({
+        title: "Invalid amount",
+        description: "Please enter a valid donation amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Simulate API call to update the database
+      // In a real app, this would be a fetch call to your backend
+      const updatedPoints = userPoints + Math.floor(donationAmount * 5); // Convert dollars to points
+      setUserPoints(updatedPoints);
+
+      // Mock updating a donation database
+      const newDonation = {
+        id: Date.now(),
+        amount: donationAmount,
+        userId: user?.id || "anonymous",
+        date: new Date().toISOString(),
+        district: selectedRegion || "General Fund",
+        projectId: currentProject?.id || null,
+        projectTitle: currentProject?.title || null
+      };
+
+      console.log("Donation added:", newDonation);
+      
+      // Close dialog and show success message
+      setIsDonationDialogOpen(false);
+      toast({
+        title: "Donation successful!",
+        description: `Thank you for donating $${donationAmount}${currentProject ? ' to ' + currentProject.title : ''}. You received ${Math.floor(donationAmount * 5)} drops!`,
+      });
+      
+      // Reset donation amount and project for next time
+      setDonationAmount(10);
+      setCurrentProject(null);
+    } catch (error) {
+      console.error("Error processing donation:", error);
+      toast({
+        title: "Donation failed",
+        description: "There was an error processing your donation. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -94,7 +174,7 @@ const UserDashboard = () => {
                     <Button
                       variant="nature"
                       className="w-full"
-                      onClick={() => setActiveTab("donate")}
+                      onClick={() => setIsDonationDialogOpen(true)}
                     >
                       <Heart className="h-4 w-4 mr-2" />
                       Make Donation
@@ -133,7 +213,7 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
-            {/* Hong Kong Map */}
+            {/* Hong Kong Map with onDonate prop */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -145,8 +225,8 @@ const UserDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="w-full h-[600px]">
-                  <HongKongMap height={600} />
+                <div className="w-full h-[700px]">
+                  <HongKongMap height={700} onDonate={handleProjectDonate} />
                 </div>
               </CardContent>
             </Card>
@@ -155,9 +235,70 @@ const UserDashboard = () => {
           <TabsContent value="leaderboard" className="space-y-6">
             <Leaderboard />
           </TabsContent>
-
         </Tabs>
       </div>
+
+      {/* Donation Dialog with project information */}
+      <Dialog open={isDonationDialogOpen} onOpenChange={setIsDonationDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-red-500" />
+              Make a Donation
+            </DialogTitle>
+            <DialogDescription>
+              {currentProject 
+                ? `Support the project "${currentProject.title}" in ${currentProject.district}.` 
+                : "Your donation helps support schools and communities in Hong Kong."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="amount" className="text-right">
+                Amount $
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                min="1"
+                className="col-span-3"
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(Number(e.target.value))}
+              />
+            </div>
+            {currentProject && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Project</Label>
+                <div className="col-span-3 text-sm">{currentProject.title}</div>
+              </div>
+            )}
+            {(selectedRegion || currentProject?.district) && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Region</Label>
+                <div className="col-span-3">{currentProject?.district || selectedRegion || "General Fund"}</div>
+              </div>
+            )}
+            {currentProject && (
+              <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                <p className="font-medium mb-1">Project Goal: ${currentProject.goal}</p>
+                <p className="text-muted-foreground mb-2">
+                  ${currentProject.raised} raised so far by {currentProject.supporters} supporters
+                </p>
+                <Progress value={(currentProject.raised / currentProject.goal) * 100} className="h-2 mb-2" />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDonationDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="nature" onClick={handleDonation}>
+              <Heart className="h-4 w-4 mr-2" />
+              Donate ${donationAmount}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
