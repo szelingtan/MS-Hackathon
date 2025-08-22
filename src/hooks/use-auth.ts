@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface PlantInventory {
@@ -37,6 +37,18 @@ interface UserProfile {
   donated_amount?: number;
   water_amount?: number;
   inventory?: PlantInventory;
+}
+
+// Transaction record interface
+interface DonationTransaction {
+  user_id: string;
+  user_name: string;
+  user_district_id: number;
+  target_district_id: number;
+  amount: number;
+  project_id?: number;
+  project_title?: string;
+  timestamp: FieldValue; // Firebase serverTimestamp
 }
 
 export const useAuth = () => {
@@ -129,8 +141,8 @@ export const useAuth = () => {
     if (!user) return;
     
     try {
-      const collection = user.role === 'donor' ? 'donors' : 'admins';
-      const userRef = doc(db, collection, user.user_id);
+      const collectionName = user.role === 'donor' ? 'donors' : 'admins';
+      const userRef = doc(db, collectionName, user.user_id);
       await updateDoc(userRef, updates);
       
       // Update local state
@@ -205,6 +217,64 @@ export const useAuth = () => {
     }
   };
 
+  // New donation function that handles both balance updates and transaction records
+  const processDonation = async (
+    amount: number, 
+    targetDistrictId: number,
+    projectId?: number,
+    projectTitle?: string
+  ) => {
+    if (!user || user.role !== 'donor') {
+      throw new Error('Only donors can make donations');
+    }
+
+    try {
+      // 1. Update user's donated amount and add water drops
+      const waterDropsEarned = Math.floor(amount * 5); // 5 drops per dollar
+      const donorRef = doc(db, 'donors', user.user_id);
+      
+      await updateDoc(donorRef, {
+        donated_amount: increment(amount),
+        water_amount: increment(waterDropsEarned)
+      });
+
+      // 2. Create transaction record in single transactions collection
+      const transactionData: DonationTransaction = {
+        user_id: user.user_id,
+        user_name: user.name,
+        user_district_id: user.district_id || 0,
+        target_district_id: targetDistrictId,
+        amount: amount,
+        timestamp: serverTimestamp(),
+        ...(projectId && { project_id: projectId }),
+        ...(projectTitle && { project_title: projectTitle })
+      };
+
+      // Add to single transactions collection
+      const transactionsRef = collection(db, 'transactions');
+      await addDoc(transactionsRef, transactionData);
+
+      // 3. Update local state
+      const updatedUser = { 
+        ...user, 
+        donated_amount: (user.donated_amount || 0) + amount,
+        water_amount: (user.water_amount || 0) + waterDropsEarned
+      };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      return {
+        success: true,
+        waterDropsEarned,
+        newBalance: updatedUser.donated_amount,
+        newWaterAmount: updatedUser.water_amount
+      };
+    } catch (error) {
+      console.error('Error processing donation:', error);
+      throw error;
+    }
+  };
+
   // Check for existing session on mount
   useEffect(() => {
     if (initialized) return; // Only run once
@@ -233,6 +303,7 @@ export const useAuth = () => {
     updateWaterAmount,
     updateDonatedAmount,
     updateInventory,
+    processDonation, // New donation function
     isAuthenticated: !!user && initialized // Only authenticated if initialized
   };
 };

@@ -37,8 +37,17 @@ const UserDashboard = () => {
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const navigate = useNavigate();
+
+  // Debug: Log when user water amount changes
+  useEffect(() => {
+    if (user) {
+      console.log('User water amount updated:', user.water_amount);
+      console.log('User donated amount updated:', user.donated_amount);
+    }
+  }, [user]);
 
   const goToProfile = () => {
     navigate('/profile');
@@ -50,9 +59,14 @@ const UserDashboard = () => {
   };
   
   const handleProjectDonate = (project: DonationProject) => {
+    // Set the current project and open the donation dialog
     setCurrentProject(project);
-    setDonationAmount(10);
     setIsDonationDialogOpen(true);
+  };
+
+  const handleDonationUpdate = () => {
+    // Called after donation is processed to refresh data
+    // This could be used to refetch user stats or project data
   };
 
   const handleDonation = async () => {
@@ -60,6 +74,13 @@ const UserDashboard = () => {
       toast.error("Please enter a valid donation amount");
       return;
     }
+
+    if (!user) {
+      toast.error("Please log in to make a donation");
+      return;
+    }
+
+    setIsProcessing(true);
 
     try {
       // Update donated amount and give water drops (1 drop per dollar as per challenge design)
@@ -73,14 +94,16 @@ const UserDashboard = () => {
       
       // Close dialog and show success message
       setIsDonationDialogOpen(false);
-      toast.success(`Thank you for donating $${donationAmount}${currentProject ? ' to ' + currentProject.title : ''}! You received ${waterDropsEarned} water drops! 💧`);
-      
-      // Reset for next time
       setDonationAmount(10);
       setCurrentProject(null);
+
+      // Trigger any update callbacks
+      handleDonationUpdate();
     } catch (error) {
       console.error("Error processing donation:", error);
       toast.error("There was an error processing your donation. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -156,7 +179,11 @@ const UserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="w-full h-[600px]">
-                  <HongKongMap height={600} onDonate={handleProjectDonate} />
+                  <HongKongMap 
+                    height={600} 
+                    onDonationUpdate={handleDonationUpdate} 
+                    onProjectDonate={handleProjectDonate}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -223,9 +250,13 @@ const UserDashboard = () => {
             <Button variant="outline" onClick={() => setIsDonationDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="nature" onClick={handleDonation}>
+            <Button 
+              variant="nature" 
+              onClick={handleDonation} 
+              disabled={isProcessing}
+            >
               <Heart className="h-4 w-4 mr-2" />
-              Donate ${donationAmount}
+              {isProcessing ? "Processing..." : `Donate $${donationAmount}`}
             </Button>
           </DialogFooter>
         </DialogContent>
