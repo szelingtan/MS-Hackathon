@@ -2,23 +2,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Award,
     Crown,
     Flower,
-    Gift,
-    Heart,
     MapPin,
     Medal,
     Quote,
     Sprout,
     Star,
-    Target,
     TreePine,
     Trophy,
-    Users,
     Zap
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -57,23 +52,12 @@ const districts = [
     }
 ];
 
-// Mock badges data
-const badges = [
-    { id: "early-supporter", name: "Early Supporter", icon: Star, color: "text-accent", description: "One of the first 100 donors" },
-    { id: "team-champion", name: "Team Champion", icon: Users, color: "text-plant-growth", description: "Recruited 5+ donors" },
-    { id: "100-lives", name: "100 Lives Touched", icon: Heart, color: "text-destructive", description: "Impacted 100+ students" },
-    { id: "plant-master", name: "Plant Master", icon: TreePine, color: "text-plant-base", description: "Reached max plant level" },
-    { id: "generous-giver", name: "Generous Giver", icon: Gift, color: "text-earth", description: "Donated $1000+" },
-    { id: "consistent-supporter", name: "Consistent Supporter", icon: Target, color: "text-water", description: "Donated 3 months in a row" }
-];
-
-// Mock user data with badges
+// Mock user data
 const userData = {
     id: 1,
     name: "Sarah Johnson",
     totalDonated: 450,
     rank: 3,
-    badges: ["early-supporter", "team-champion", "100-lives"],
     district: "district-1"
 };
 
@@ -156,7 +140,7 @@ const Leaderboard = () => {
             </Card>
 
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="voting" className="flex items-center gap-2">
                         <Sprout className="h-4 w-4" />
                         Daily Voting
@@ -168,10 +152,6 @@ const Leaderboard = () => {
                     <TabsTrigger value="districts" className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
                         By District
-                    </TabsTrigger>
-                    <TabsTrigger value="badges" className="flex items-center gap-2">
-                        <Award className="h-4 w-4" />
-                        Badges
                     </TabsTrigger>
                 </TabsList>
 
@@ -331,17 +311,9 @@ const Leaderboard = () => {
                                         <p className="text-muted-foreground">${userData.totalDonated} donated</p>
                                     </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    {userData.badges.slice(0, 3).map((badgeId) => {
-                                        const badge = badges.find(b => b.id === badgeId);
-                                        if (!badge) return null;
-                                        const IconComponent = badge.icon;
-                                        return (
-                                            <div key={badgeId} className={`p-2 rounded-full bg-muted/50`}>
-                                                <IconComponent className={`h-4 w-4 ${badge.color}`} />
-                                            </div>
-                                        );
-                                    })}
+                                <div className="text-sm text-muted-foreground">
+                                    <p>Visit your profile to view</p>
+                                    <p>badges and achievements!</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -392,88 +364,6 @@ const Leaderboard = () => {
                             </Card>
                         ))}
                     </div>
-                </TabsContent>
-
-                {/* Badges & Achievements */}
-                <TabsContent value="badges" className="space-y-6">
-                    {/* Your Badges */}
-                    <Card className="shadow-plant">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Award className="h-6 w-6 text-accent" />
-                                Your Achievements
-                            </CardTitle>
-                            <CardDescription>
-                                Badges you've earned for your contributions
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {badges.map((badge) => {
-                                    const IconComponent = badge.icon;
-                                    const isEarned = userData.badges.includes(badge.id);
-                                    return (
-                                        <div
-                                            key={badge.id}
-                                            className={`p-4 rounded-lg border transition-all ${isEarned
-                                                    ? 'bg-gradient-to-br from-plant-base/20 to-plant-growth/20 border-plant-base/30 shadow-plant'
-                                                    : 'bg-muted/30 border-muted opacity-60'
-                                                }`}
-                                        >
-                                            <div className="flex flex-col items-center text-center space-y-2">
-                                                <div className={`p-3 rounded-full ${isEarned ? 'bg-plant-growth/20' : 'bg-muted'}`}>
-                                                    <IconComponent className={`h-6 w-6 ${isEarned ? badge.color : 'text-muted-foreground'}`} />
-                                                </div>
-                                                <div>
-                                                    <p className={`font-semibold ${isEarned ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                        {badge.name}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        {badge.description}
-                                                    </p>
-                                                </div>
-                                                {isEarned && (
-                                                    <Badge className="bg-plant-growth/20 text-plant-growth border-plant-growth/30">
-                                                        Earned!
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Progress Towards Next Badge */}
-                    <Card className="shadow-soft">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Target className="h-6 w-6 text-water" />
-                                Progress Towards Next Badge
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Generous Giver ($1000 donated)</span>
-                                    <span className="text-sm text-muted-foreground">$450 / $1000</span>
-                                </div>
-                                <Progress value={45} className="h-2" />
-                            </div>
-
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Plant Master (Max plant level)</span>
-                                    <span className="text-sm text-muted-foreground">Level 3 / 3</span>
-                                </div>
-                                <Progress value={100} className="h-2" />
-                                <Badge className="bg-plant-growth/20 text-plant-growth border-plant-growth/30">
-                                    Ready to claim!
-                                </Badge>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </TabsContent>
             </Tabs>
         </div>
