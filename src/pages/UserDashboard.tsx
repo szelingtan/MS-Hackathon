@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/use-auth";
+import { useGardenBackend } from "@/hooks/useGardenBackend";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
+import { Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -31,6 +32,7 @@ interface DonationProject {
 
 const UserDashboard = () => {
   const { user, logout, updateWaterAmount, updateDonatedAmount } = useAuth();
+  const { addWaterDrops } = useGardenBackend();
   const [activeTab, setActiveTab] = useState("game");
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
@@ -60,11 +62,14 @@ const UserDashboard = () => {
     }
 
     try {
-      // Update donated amount and give water drops (5 drops per dollar)
-      const waterDropsEarned = Math.floor(donationAmount * 5);
+      // Update donated amount and give water drops (1 drop per dollar as per challenge design)
+      const waterDropsEarned = donationAmount;
       
       await updateDonatedAmount(donationAmount);
       await updateWaterAmount(waterDropsEarned);
+      
+      // Also update garden backend
+      await addWaterDrops(waterDropsEarned);
       
       // Close dialog and show success message
       setIsDonationDialogOpen(false);
@@ -103,16 +108,6 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="flex items-center gap-2">
-                <Droplets className="h-4 w-4" />
-                {user.water_amount} drops
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                ${user.donated_amount} donated
-              </Badge>
-            </div>
             <Badge variant="secondary">
               Welcome {user.name}!
             </Badge>
@@ -145,7 +140,7 @@ const UserDashboard = () => {
           </TabsList>
 
           <TabsContent value="game" className="space-y-6">
-            <PlantGame waterDrops={user.water_amount} />
+            <PlantGame userId={user.user_id} />
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
