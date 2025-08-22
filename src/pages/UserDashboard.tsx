@@ -2,6 +2,7 @@ import ImpactFeed from "@/components/ImpactFeed";
 import Leaderboard from "@/components/Leaderboard";
 import PlantGame from "@/components/PlantGame";
 import RegionSelector from "@/components/RegionSelector";
+import HongKongMap from "@/components/HongKongMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -136,6 +137,23 @@ const UserDashboard = () => {
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
+            {/* Hong Kong Map */}
+            <Card className="shadow-soft">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-accent" />
+                  Hong Kong Districts
+                </CardTitle>
+                <CardDescription>
+                  Explore the districts where your donations make an impact
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <HongKongMap />
+              </CardContent>
+            </Card>
+
+            {/* Impact Stories */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
