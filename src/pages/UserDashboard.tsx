@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 // Add this interface for the project data
@@ -37,10 +38,17 @@ const UserDashboard = () => {
   const [userPoints, setUserPoints] = useState(250);
   const [showDonationFlow, setShowDonationFlow] = useState(false);
   const [activeTab, setActiveTab] = useState("game");
+
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
   const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
   
+  const navigate = useNavigate();
+
+  const goToProfile = () => {
+    navigate('/profile');
+  };
+
   const handleLogout = () => {
     logout();
   };
@@ -113,16 +121,15 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-gradient-water px-3 py-1 rounded-full">
-              <Droplets className="h-4 w-4 text-primary-foreground" />
-              <span className="text-sm font-medium text-primary-foreground">{userPoints} drops</span>
-            </div>
             <Badge variant="secondary">
               Welcome {user?.name}!
             </Badge>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToProfile}>
+              Profile
             </Button>
           </div>
         </div>
@@ -210,6 +217,7 @@ const UserDashboard = () => {
                 </div>
               </div>
             </div>
+            <PlantGame waterDrops={userPoints} />
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-6">
