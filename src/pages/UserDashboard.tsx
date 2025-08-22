@@ -82,6 +82,13 @@ const UserDashboard = () => {
 
     setIsProcessing(true);
 
+    if (!user) {
+      toast.error("Please log in to make a donation");
+      return;
+    }
+
+    setIsProcessing(true);
+
     try {
       // Update donated amount and give water drops (1 drop per dollar as per challenge design)
       const waterDropsEarned = donationAmount;
