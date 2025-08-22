@@ -4,7 +4,7 @@ import { Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target,
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();

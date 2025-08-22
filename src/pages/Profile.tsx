@@ -1,59 +1,69 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
-const availableLocations = ["Hong Kong", "Macau", "Shenzhen"];
-const availableDistricts = ["Kowloon", "New Territories", "Hong Kong Island"];
+// Hong Kong districts mapping
+const districtMap = {
+  1: "Hong Kong Island",
+  2: "Kowloon",
+  3: "New Territories",
+  4: "Outlying Islands"
+};
 
 const Profile = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateProfile } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState(user?.email || "");
   const [displayName, setDisplayName] = useState(user?.name || "");
-  const [location, setLocation] = useState(user?.location || "");
-  const [districts, setDistricts] = useState<string[]>(user?.districts || []);
+  const [districtId, setDistrictId] = useState(user?.district_id || 1);
 
   const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
-    setEmail(user?.email || "");
-    setDisplayName(user?.name || "");
-    setLocation(user?.location || "");
-    setDistricts(user?.districts || []);
+    if (user) {
+      setEmail(user.email);
+      setDisplayName(user.name);
+      setDistrictId(user.district_id);
+    }
   }, [user]);
-
-  const toggleDistrict = (district: string) => {
-    setDistricts((prev) =>
-      prev.includes(district)
-        ? prev.filter((d) => d !== district)
-        : [...prev, district]
-    );
-  };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateUser({
+      await updateProfile({
         email,
         name: displayName,
-        location,
-        districts,
+        district_id: districtId,
       });
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      
+      toast.success("Profile updated successfully! 🌱");
     } catch (error) {
       console.error("Failed to save profile:", error);
+      toast.error("Failed to save profile. Please try again.");
     } finally {
       setSaving(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-sky flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Please log in to view your profile.</p>
+          <Button onClick={() => navigate('/login')} className="mt-4">
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-sky py-10">
@@ -63,6 +73,29 @@ const Profile = () => {
         <Button variant="outline" onClick={() => navigate(-1)}>
           ← Back
         </Button>
+
+        {/* Profile Stats Card */}
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle>Profile Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-muted/30 rounded-lg">
+                <p className="text-2xl font-bold text-plant-growth">{user.water_amount}</p>
+                <p className="text-sm text-muted-foreground">Water Drops</p>
+              </div>
+              <div className="text-center p-4 bg-muted/30 rounded-lg">
+                <p className="text-2xl font-bold text-accent">${user.donated_amount}</p>
+                <p className="text-sm text-muted-foreground">Total Donated</p>
+              </div>
+            </div>
+            <div className="text-center p-4 bg-muted/30 rounded-lg">
+              <p className="text-lg font-medium">{districtMap[user.district_id as keyof typeof districtMap]}</p>
+              <p className="text-sm text-muted-foreground">Your District</p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Basic Info Card */}
         <Card className="shadow-soft">
@@ -92,58 +125,77 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Location & Districts Card */}
+        {/* District Selection Card */}
         <Card className="shadow-soft">
           <CardHeader>
-            <CardTitle>Location & Supported Districts</CardTitle>
+            <CardTitle>Home District</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="location">Location</Label>
+              <Label htmlFor="district">Your Home District</Label>
               <select
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2"
+                id="district"
+                value={districtId}
+                onChange={(e) => setDistrictId(Number(e.target.value))}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 bg-background"
               >
-                <option value="">Select location</option>
-                {availableLocations.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
+                {Object.entries(districtMap).map(([id, name]) => (
+                  <option key={id} value={Number(id)}>
+                    {name}
                   </option>
                 ))}
               </select>
+              <p className="text-sm text-muted-foreground mt-2">
+                This helps us show you relevant projects in your area.
+              </p>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* Plant Inventory Card */}
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle>Your Garden</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <Label>Supported Districts</Label>
-              <div className="flex flex-wrap gap-4 mt-2">
-                {availableDistricts.map((district) => (
-                  <label key={district} className="inline-flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={districts.includes(district)}
-                      onChange={() => toggleDistrict(district)}
-                      className="rounded border-gray-300 text-plant-growth focus:ring-plant-growth"
-                    />
-                    <span>{district}</span>
-                  </label>
+              <Label>Plants Collected</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {user.inventory.plants.map((plant, index) => (
+                  <Badge key={index} variant="outline" className="capitalize">
+                    🌱 {plant.replace('_', ' ')}
+                  </Badge>
                 ))}
+              </div>
+            </div>
+            
+            <div>
+              <Label>Accessories Collected</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {user.inventory.accessories.length > 0 ? (
+                  user.inventory.accessories.map((accessory, index) => (
+                    <Badge key={index} variant="outline" className="capitalize">
+                      ✨ {accessory.replace('_', ' ')}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No accessories collected yet</p>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Save Button & Success Badge */}
-        <div className="flex items-center space-x-4">
-          <Button onClick={handleSave} disabled={saving}>
+        {/* Save Button */}
+        <div className="flex items-center justify-center">
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="w-full max-w-xs"
+            variant="nature"
+          >
             {saving ? "Saving..." : "Save Changes"}
           </Button>
-          {saveSuccess && (
-            <Badge variant="success" className="py-2">
-              Profile saved!
-            </Badge>
-          )}
         </div>
       </div>
     </div>
