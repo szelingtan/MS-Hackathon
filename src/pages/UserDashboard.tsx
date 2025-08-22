@@ -150,22 +150,6 @@ const UserDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Impact Stories */}
-            <Card className="shadow-soft">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Forestry
-                </CardTitle>
-                <CardDescription>
-                  See the real difference your donations make
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ImpactFeed />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="leaderboard" className="space-y-6">
