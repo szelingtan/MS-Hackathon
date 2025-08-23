@@ -578,11 +578,11 @@ const AdminDashboard = () => {
   const NAV_ITEMS: { key: NavTab; label: string; icon: LucideIcon }[] = [
     { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
     { key: 'donationTrends',     label: 'Donation Trends',        icon: Activity },
-    { key: 'donorGrowth',        label: 'Donor Growth & Retention',icon: Users },
+    { key: 'donorGrowth',        label: 'Donor Trends',icon: Users },
     { key: 'statusDistribution', label: 'Donor Status Distribution',    icon: PieIcon },
     { key: 'districts',          label: 'Amount by Districts',    icon: MapPin },
     { key: 'socialEngagement',   label: 'Social Engagement',      icon: MessageCircle },
-    { key: 'impact',             label: 'Impact',                 icon: Layers },
+    { key: 'impact',             label: 'Impact Overview',        icon: Layers },
     { key: 'impactStories',      label: 'Impact Stories',         icon: Book },
   ];
 
