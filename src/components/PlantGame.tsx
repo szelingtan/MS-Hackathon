@@ -34,7 +34,8 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     completeChallenge: backendCompleteChallenge,
     claimChallenge: backendClaimChallenge,
     resetDailyChallenges: backendResetChallenges,
-    makeGardenPublic
+    makeGardenPublic,
+    syncWaterAmount
   } = useGardenBackend();
 
   // Claim a daily challenge reward

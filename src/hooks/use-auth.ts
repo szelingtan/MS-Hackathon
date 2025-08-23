@@ -59,6 +59,33 @@ export const useAuth = () => {
   const [initialized, setInitialized] = useState(false); // Track if we've checked localStorage
   const [updateCounter, setUpdateCounter] = useState(0); // Force component updates
 
+  // Add global event listener for forced updates
+  useEffect(() => {
+    const handleGlobalUserUpdate = (event: CustomEvent) => {
+      console.log('Received global user update event:', event.detail);
+      if (event.detail.user && user?.user_id === event.detail.user.user_id) {
+        setUser({...event.detail.user});
+        setUpdateCounter(prev => prev + 1);
+      }
+    };
+
+    const handleGlobalWaterUpdate = (event: CustomEvent) => {
+      console.log('Received global water update event:', event.detail);
+      if (event.detail.newTotal !== undefined && user) {
+        setUser(prev => prev ? {...prev, water_amount: event.detail.newTotal, _lastUpdated: Date.now()} : prev);
+        setUpdateCounter(prev => prev + 1);
+      }
+    };
+
+    window.addEventListener('userDataUpdated', handleGlobalUserUpdate);
+    window.addEventListener('waterDropsUpdated', handleGlobalWaterUpdate);
+
+    return () => {
+      window.removeEventListener('userDataUpdated', handleGlobalUserUpdate);
+      window.removeEventListener('waterDropsUpdated', handleGlobalWaterUpdate);
+    };
+  }, [user]);
+
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
@@ -307,10 +334,29 @@ export const useAuth = () => {
       const updatedUser = { 
         ...user, 
         donated_amount: (user.donated_amount || 0) + amount,
-        water_amount: (user.water_amount || 0) + waterDropsEarned
+        water_amount: (user.water_amount || 0) + waterDropsEarned,
+        _lastUpdated: Date.now()
       };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUpdateCounter(prev => prev + 1);
+      
+      // Immediately dispatch global events to update all components
+      window.dispatchEvent(new CustomEvent('userDataUpdated', {
+        detail: { user: updatedUser, water_amount: updatedUser.water_amount }
+      }));
+      window.dispatchEvent(new CustomEvent('waterDropsUpdated', {
+        detail: { newTotal: updatedUser.water_amount, amountAdded: waterDropsEarned }
+      }));
+      
+      // Additional forced updates
+      setTimeout(() => {
+        setUpdateCounter(prev => prev + 1);
+        setUser({...updatedUser});
+        window.dispatchEvent(new CustomEvent('waterDropsUpdated', {
+          detail: { newTotal: updatedUser.water_amount }
+        }));
+      }, 10);
 
       return {
         success: true,
@@ -471,11 +517,36 @@ export const useAuth = () => {
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUpdateCounter(prev => prev + 1);
         
+        // Force additional re-render triggers with multiple approaches
+        setTimeout(() => {
+          setUpdateCounter(prev => prev + 1);
+          // Force a new object reference to trigger React re-renders
+          setUser({...updatedUser});
+        }, 50);
+        
+        setTimeout(() => {
+          setUpdateCounter(prev => prev + 1);
+          // Dispatch multiple global events to ensure all components update
+          window.dispatchEvent(new CustomEvent('userDataUpdated', {
+            detail: { user: updatedUser, water_amount: updatedUser.water_amount }
+          }));
+          window.dispatchEvent(new CustomEvent('waterDropsUpdated', {
+            detail: { newTotal: updatedUser.water_amount }
+          }));
+        }, 100);
+        
+        setTimeout(() => {
+          // Final forced update
+          setUpdateCounter(prev => prev + 1);
+          setUser(prev => ({...prev, _forceUpdate: Date.now()}));
+        }, 200);
+        
         console.log('User data refreshed successfully:', {
           old_water: user.water_amount,
           new_water: updatedUser.water_amount,
           old_donated: user.donated_amount,
-          new_donated: updatedUser.donated_amount
+          new_donated: updatedUser.donated_amount,
+          timestamp: Date.now()
         });
         
         return updatedUser;
