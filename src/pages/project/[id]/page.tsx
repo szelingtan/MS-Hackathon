@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react"
 
 type Milestone = {
 id: string
@@ -50,6 +52,15 @@ const [projectMilestones, setProjectMilestones] = useState<ProjectMilestones | n
 const [projectData, setProjectData] = useState<Project | null>(null)
 const [myDonations, setMyDonations] = useState<Record<number, number>>({})
 const [loading, setLoading] = useState(true)
+
+const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'high': return 'text-red-500 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+}
 
 useEffect(() => {
     const loadData = async () => {
@@ -140,19 +151,17 @@ return (
             <span className="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
             {projectData.district}
             </span>
-            <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-            {projectData.category}
-            </span>
-            <span className="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
-            {projectData.urgency}
-            </span>
+            <Badge className={`text-xs ${getUrgencyColor(projectData.urgency)}`}>
+                <Clock className="h-3 w-3 mr-1" />
+                {projectData.urgency.charAt(0).toUpperCase() + projectData.urgency.slice(1)} Priority
+            </Badge>
         </div>
 
         {/* Goal & Raised Progress Bar */}
         <div className="mb-6">
             <div className="flex justify-between text-sm font-medium mb-1">
-            <span>Goal: ${projectData.goal.toLocaleString()}</span>
             <span>Raised: ${projectData.raised.toLocaleString()}</span>
+            <span>Goal: ${projectData.goal.toLocaleString()}</span>
             </div>
             <div className="w-full bg-gray-300 rounded-full h-5 overflow-hidden shadow-inner">
             <div
