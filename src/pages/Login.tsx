@@ -14,6 +14,12 @@ const Login = () => {
   const [userPassword, setUserPassword] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+
+  const DEMO_DONOR_EMAIL = "test@gmail.com";
+  const DEMO_DONOR_PASSWORD = "password";
+  const DEMO_ADMIN_EMAIL = "admin@gmail.com";
+  const DEMO_ADMIN_PASSWORD = "password";
+
   
   const { login, loading } = useAuth();
   const navigate = useNavigate();
@@ -102,6 +108,17 @@ const Login = () => {
                 >
                   {loading ? "Signing in..." : "Enter Garden"}
                 </Button>
+                <Button
+                  variant="link"
+                  className="text-sm p-0 h-auto"
+                  type="button"
+                  onClick={() => {
+                    setUserEmail(DEMO_DONOR_EMAIL);
+                    setUserPassword(DEMO_DONOR_PASSWORD);
+                  }}
+                >
+                  Autofill Demo Donor Account
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -157,6 +174,18 @@ const Login = () => {
               <p className="text-sm text-muted-foreground text-center">
                 Contact team for admin credentials
               </p>
+
+              <Button
+                  variant="link"
+                  className="text-sm p-0 h-auto"
+                  type="button"
+                  onClick={() => {
+                    setAdminEmail(DEMO_ADMIN_EMAIL);
+                    setAdminPassword(DEMO_ADMIN_PASSWORD);
+                  }}
+                >
+                  Autofill Demo Admin Account
+                </Button>
             </CardContent>
           </Card>
         </div>
