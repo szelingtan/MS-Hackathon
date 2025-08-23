@@ -214,5 +214,29 @@
     "urgency": "high",
     "category": "Technology",
     "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 19,
+    "district": "Tai Po",
+    "title": "Sunnydale Elementary Computer Lab",
+    "description": "Upgrading outdated computer facilities at Sunnydale Elementary to support modern digital learning.",
+    "goal": 35000,
+    "raised": 19800,
+    "supporters": 87,
+    "urgency": "medium",
+    "category": "Education",
+    "image": "/api/placeholder/300/200"
+  },
+  {
+    "id": 20,
+    "district": "Tai Po",
+    "title": "Green Valley Environmental Education",
+    "description": "Workshops and field trips promoting sustainability and environmental responsibility among local youth.",
+    "goal": 28000,
+    "raised": 16400,
+    "supporters": 64,
+    "urgency": "low",
+    "category": "Environment",
+    "image": "/api/placeholder/300/200"
   }
 ]
