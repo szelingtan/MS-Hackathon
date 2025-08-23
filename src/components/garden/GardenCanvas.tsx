@@ -36,7 +36,7 @@ export const GardenCanvas = ({
   isEditMode,
   backgroundTheme,
   selectedAccessory,
-  selectedPlant, // FIXED: Use this prop
+  selectedPlant,
   placementMode,
   onPlantMove,
   onPlantRemove,
@@ -76,44 +76,68 @@ export const GardenCanvas = ({
 
   const handleDragEnd = (event: DragEndEvent) => {
     console.log('Drag End Event:', event);
-    const { active, delta, over } = event;
+    const { active, delta } = event;
 
-    if (active && over && over.id === 'garden-canvas') {
-      const dragData = active.data.current;
+    if (!active) {
+      setDraggedPlant(null);
+      setDraggedAccessory(null);
+      return;
+    }
 
-      if (dragData?.source === 'palette' && onAddPlant) {
-        // Dragging from palette - add new plant at center for now
-        const centerPosition = {
-          x: 400,
-          y: 200
-        };
-
-        if (dragData.plantId) {
-          onAddPlant(dragData.plantId, centerPosition);
-        }
-      } else if (active && delta) {
-        // Check if dragging plant or accessory
-        const plant = plants.find(p => p.id === active.id);
-        const accessory = (gardenAccessories || []).find(a => a.id === active.id);
-
-        if (plant && onPlantMove) {
-          // Dragging existing plant
-          const newPosition = {
-            x: plant.position.x + delta.x,
-            y: plant.position.y + delta.y
-          };
-          onPlantMove(plant.id, newPosition);
-        } else if (accessory && onAccessoryMove) {
-          // Dragging existing accessory
-          const newPosition = {
-            x: accessory.position.x + delta.x,
-            y: accessory.position.y + delta.y
-          };
-          onAccessoryMove(accessory.id, newPosition);
-        }
+    // Handle dragging existing items (plants and accessories)
+    if (delta && (delta.x !== 0 || delta.y !== 0)) {
+      console.log('Delta detected:', delta);
+      
+      // Check if dragging a plant
+      const plant = plants.find(p => p.id === active.id);
+      if (plant && onPlantMove) {
+        console.log('Moving plant:', plant.id, 'from:', plant.position);
+        
+        // Calculate new position with bounds checking
+        const canvasRect = document.getElementById('garden-canvas')?.getBoundingClientRect();
+        const canvasWidth = canvasRect?.width || 800;
+        const canvasHeight = canvasRect?.height || 400;
+        
+        let newX = plant.position.x + delta.x;
+        let newY = plant.position.y + delta.y;
+        
+        // Keep plant within canvas bounds (with padding)
+        newX = Math.max(40, Math.min(canvasWidth - 40, newX));
+        newY = Math.max(40, Math.min(canvasHeight - 60, newY)); // Extra padding for ground
+        
+        const newPosition = { x: newX, y: newY };
+        console.log('New position:', newPosition);
+        
+        // Call the move handler
+        onPlantMove(plant.id, newPosition);
+      }
+      
+      // Check if dragging an accessory
+      const accessory = (gardenAccessories || []).find(a => a.id === active.id);
+      if (accessory && onAccessoryMove) {
+        console.log('Moving accessory:', accessory.id, 'from:', accessory.position);
+        
+        // Calculate new position with bounds checking
+        const canvasRect = document.getElementById('garden-canvas')?.getBoundingClientRect();
+        const canvasWidth = canvasRect?.width || 800;
+        const canvasHeight = canvasRect?.height || 400;
+        
+        let newX = accessory.position.x + delta.x;
+        let newY = accessory.position.y + delta.y;
+        
+        // Keep accessory within canvas bounds (with padding)
+        newX = Math.max(20, Math.min(canvasWidth - 20, newX));
+        newY = Math.max(20, Math.min(canvasHeight - 40, newY));
+        
+        const newPosition = { x: newX, y: newY };
+        console.log('New accessory position:', newPosition);
+        
+        // Call the move handler
+        onAccessoryMove(accessory.id, newPosition);
       }
     }
 
+    // Reset drag state
     setDraggedPlant(null);
     setDraggedAccessory(null);
   };
@@ -156,6 +180,7 @@ export const GardenCanvas = ({
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div
         ref={setNodeRef}
+        id="garden-canvas" // Add ID for bounds calculation
         onClick={handleCanvasClick}
         className={`relative w-full h-80 rounded-lg overflow-hidden ${isEditMode ? 'cursor-crosshair' : 'cursor-default'} ${theme?.sky.gradient || 'bg-gradient-to-b from-blue-100 to-green-100'}`}
         style={{ minHeight: '400px' }}
@@ -196,7 +221,7 @@ export const GardenCanvas = ({
 
           return (
             <GardenPlant
-              key={plantInstance.id}
+              key={`plant-${plantInstance.id}-${plantInstance.position.x}-${plantInstance.position.y}`} // Force re-render on position change
               plantInstance={plantInstance}
               plantData={plant}
               accessories={accessories}
@@ -218,7 +243,7 @@ export const GardenCanvas = ({
 
           return (
             <GardenAccessory
-              key={accessoryInstance.id}
+              key={`accessory-${accessoryInstance.id}-${accessoryInstance.position.x}-${accessoryInstance.position.y}`} // Force re-render on position change
               accessoryInstance={accessoryInstance}
               accessoryData={accessory}
               isEditMode={isEditMode}

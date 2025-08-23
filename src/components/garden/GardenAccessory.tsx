@@ -1,6 +1,6 @@
+import { Accessory, AccessoryInstance } from '@/types/garden';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { AccessoryInstance, Accessory } from '@/types/garden';
 
 interface GardenAccessoryProps {
   accessoryInstance: AccessoryInstance;
@@ -82,32 +82,49 @@ export const GardenAccessory = ({
     }
   };
 
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('Delete button clicked for accessory:', accessoryInstance.id);
+    if (onRemove) {
+      onRemove();
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       data-accessory-id={accessoryInstance.id}
-      {...listeners}
-      {...attributes}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
       className={`relative flex flex-col items-center ${isPlacementMode ? 'animate-pulse' : ''}`}
     >
-      {/* Remove button in edit mode */}
+      {/* Remove button in edit mode - FIXED: Proper event handling */}
       {isEditMode && onRemove && !isPlacementMode && (
         <button
-          onClick={(e) => {
+          onClick={handleRemove}
+          onMouseDown={(e) => {
             e.stopPropagation();
-            onRemove();
+            e.preventDefault();
           }}
-          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs z-10 flex items-center justify-center"
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs z-20 flex items-center justify-center shadow-lg cursor-pointer"
         >
           ×
         </button>
       )}
 
-      {/* Main accessory */}
-      <div style={rotationStyle} className="relative">
+      {/* Draggable accessory content */}
+      <div
+        {...listeners}
+        {...attributes}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        className="cursor-grab active:cursor-grabbing"
+        style={rotationStyle}
+      >
         {accessoryData.emoji}
       </div>
 
