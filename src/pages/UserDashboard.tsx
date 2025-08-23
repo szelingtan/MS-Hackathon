@@ -63,6 +63,19 @@ const UserDashboard = () => {
     }
   }, [location.search]);
 
+  // Extract district parameter from URL for HongKongMap
+  const getSelectedDistrictFromURL = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('district');
+  };
+
+  // Extract default tab for HongKongMap side panel based on URL parameters
+  const getDefaultMapTab = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const fromProject = searchParams.get('fromProject'); // We'll add this parameter
+    return fromProject === 'true' ? 'projects' : 'stories';
+  };
+
   // Update local water amount when user changes
   useEffect(() => {
     if (user?.water_amount !== undefined) {
@@ -358,6 +371,8 @@ const UserDashboard = () => {
                     height={window.innerWidth < 640 ? 300 : 600}
                     onDonationUpdate={handleDonationUpdate} 
                     onProjectDonate={handleProjectDonate}
+                    initialSelectedDistrict={getSelectedDistrictFromURL()}
+                    defaultSidePanelTab={getDefaultMapTab()}
                   />
                 </div>
               </CardContent>
