@@ -6,7 +6,6 @@ import ImpactFeed from "@/components/ImpactFeed";
 import Leaderboard from "@/components/Leaderboard";
 import PlantGame from "@/components/PlantGame";
 import HongKongMap from "@/components/HongKongMap";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronDown, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGardenBackend } from "@/hooks/useGardenBackend";
 import treeLogo from "@/assets/tree.png";
@@ -258,39 +259,45 @@ const UserDashboard = () => {
               <img src={reachTogetherLogo} alt="Reach Together" className="h-6 w-auto mt-1" />
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                <Badge 
+            <div className="flex items-center gap-4">
+              {/* Stats Pills */}
+              <div className="flex items-center gap-3">
+                <div 
                   key={`water-${renderKey}-${localWaterAmount}`}
-                  variant="secondary" 
-                  className="flex items-center gap-1 text-xs"
+                  className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-full border border-blue-200 transition-colors"
                 >
-                  <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">{localWaterAmount} drops</span>
-                  <span className="xs:hidden">{localWaterAmount}</span>
-                </Badge>
-                <Badge 
+                  <Droplets className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700">{localWaterAmount}</span>
+                </div>
+                <div 
                   key={`donated-${renderKey}-${user.donated_amount}`}
-                  variant="outline" 
-                  className="flex items-center gap-1 text-xs"
+                  className="flex items-center gap-2 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-full border border-green-200 transition-colors"
                 >
-                  <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">${user.donated_amount} donated</span>
-                  <span className="xs:hidden">${user.donated_amount}</span>
-                </Badge>
+                  <Heart className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">${user.donated_amount}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">
-                  Welcome {user.name}!
-                </Badge>
-                <Button variant="outline" size="sm" onClick={goToProfile} className="text-xs px-2">
-                  Profile
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2">
-                  <LogOut className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
-              </div>
+              
+              {/* User Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-full border border-amber-200 transition-colors cursor-pointer">
+                    <User className="h-4 w-4 text-amber-700" />
+                    <span className="text-sm font-medium text-amber-800">{user.name}</span>
+                    <ChevronDown className="h-4 w-4 text-amber-700" />
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-28">
+                  <DropdownMenuItem onClick={goToProfile} className="cursor-pointer">
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>

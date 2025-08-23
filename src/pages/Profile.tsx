@@ -133,24 +133,41 @@ const Profile = () => {
       </Card>
 
         {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full h-auto flex flex-wrap gap-2">
-            <TabsTrigger value="overview" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="progress" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
-              My Progress
-            </TabsTrigger>
-            <TabsTrigger value="projects" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
-              My Projects
-            </TabsTrigger>
-            <TabsTrigger value="badges" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
-              Badges
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
-              Settings
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-soft border border-green-100 p-2">
+            <TabsList className="w-full h-auto grid grid-cols-2 md:grid-cols-5 gap-2 bg-transparent">
+              <TabsTrigger 
+                value="overview" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-plant-growth data-[state=active]:to-plant-base data-[state=active]:text-white px-4 py-3 text-sm font-medium rounded-md transition-all hover:bg-green-50 data-[state=active]:hover:from-plant-growth data-[state=active]:hover:to-plant-base text-green-700 data-[state=active]:text-white"
+              >
+                📊 Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="progress" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-plant-growth data-[state=active]:to-plant-base data-[state=active]:text-white px-4 py-3 text-sm font-medium rounded-md transition-all hover:bg-green-50 data-[state=active]:hover:from-plant-growth data-[state=active]:hover:to-plant-base text-green-700 data-[state=active]:text-white"
+              >
+                📈 My Progress
+              </TabsTrigger>
+              <TabsTrigger 
+                value="projects" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-plant-growth data-[state=active]:to-plant-base data-[state=active]:text-white px-4 py-3 text-sm font-medium rounded-md transition-all hover:bg-green-50 data-[state=active]:hover:from-plant-growth data-[state=active]:hover:to-plant-base text-green-700 data-[state=active]:text-white"
+              >
+                🚀 My Projects
+              </TabsTrigger>
+              <TabsTrigger 
+                value="badges" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-plant-growth data-[state=active]:to-plant-base data-[state=active]:text-white px-4 py-3 text-sm font-medium rounded-md transition-all hover:bg-green-50 data-[state=active]:hover:from-plant-growth data-[state=active]:hover:to-plant-base text-green-700 data-[state=active]:text-white"
+              >
+                🏆 Badges
+              </TabsTrigger>
+              <TabsTrigger 
+                value="settings" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-plant-growth data-[state=active]:to-plant-base data-[state=active]:text-white px-4 py-3 text-sm font-medium rounded-md transition-all hover:bg-green-50 data-[state=active]:hover:from-plant-growth data-[state=active]:hover:to-plant-base text-green-700 data-[state=active]:text-white col-span-2 md:col-span-1"
+              >
+                ⚙️ Settings
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
