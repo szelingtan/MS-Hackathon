@@ -16,6 +16,7 @@ export interface ImpactStory {
   impact: string;
   date: string;
   image: string; // '' when no image
+  views?: number;
 }
 
 interface EditPostProps {

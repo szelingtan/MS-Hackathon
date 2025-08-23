@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 
 import CreatePost from '@/components/CreatePost';
 import EditPost, { ImpactStory } from '@/components/EditPost';
+import { Eye } from 'lucide-react';
 
 interface PostType extends ImpactStory {}
 
@@ -25,7 +26,12 @@ const ImpactStoryFeed: React.FC = () => {
         const res = await fetch('/hk-game/data/impact-stories.json');
         if (!res.ok) throw new Error('Failed to fetch stories');
         const data = await res.json();
-        setStories(data);
+        const storiesWithViews = data.map((story: ImpactStory) => ({
+            ...story,
+            views: Math.floor(Math.random() * 51), // random between 0-50
+        }));
+
+        setStories(storiesWithViews);
       } catch (err) {
         console.error('Error loading stories:', err);
       }
@@ -69,13 +75,14 @@ const ImpactStoryFeed: React.FC = () => {
           triggerClassName="bg-[#8B5E3C] hover:bg-[#6E4428] text-white"
           onSubmit={(post) => {
             const newPost: PostType = {
-              id: Date.now(),
-              district: post.district || 'Unknown District', // use district directly
-              title: post.title,
-              description: post.content,
-              impact: post.impact,
-              date: new Date().toISOString(),
-              image: post.file ? URL.createObjectURL(post.file) : '/api/placeholder/300/200',
+                id: Date.now(),
+                district: post.district || 'Unknown District', // use district directly
+                title: post.title,
+                description: post.content,
+                impact: post.impact,
+                date: new Date().toISOString(),
+                image: post.file ? URL.createObjectURL(post.file) : '/api/placeholder/300/200',
+                views: Math.floor(Math.random() * 51),
             };
             setPosts(prev => [newPost, ...prev]);
           }}
@@ -117,14 +124,19 @@ const ImpactStoryFeed: React.FC = () => {
                 <p className="text-sm text-muted-foreground line-clamp-3">
                   {story.description}
                 </p>
-                <p className="text-sm font-medium text-primary">{story.impact}</p>
+                <p className="text-sm font-medium text-primary">
+                    {story.impact} 
+                </p>
+                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Eye className="h-3 w-3" /> {story.views ?? 0} views
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
       ) : (
         <p className="text-center text-muted-foreground text-sm mt-12">
-          No stories available yet. Be the first to create one!
+          No stories available yet. Add an update!
         </p>
       )}
 
