@@ -1,20 +1,19 @@
-import { useDroppable } from '@dnd-kit/core';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
-import { useState } from 'react';
-import { GardenPlant } from './GardenPlant';
-import { GardenAccessory } from './GardenAccessory';
-import { PlantInstance, Plant, Accessory, AccessoryInstance, Position } from '@/types/garden';
-import { BackgroundTheme } from '@/types/themes';
 import { getThemeById } from '@/data/backgroundThemes';
+import { Accessory, AccessoryInstance, Plant, PlantInstance, Position } from '@/types/garden';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, useDroppable } from '@dnd-kit/core';
+import { useState } from 'react';
+import { GardenAccessory } from './GardenAccessory';
+import { GardenPlant } from './GardenPlant';
 
 interface GardenCanvasProps {
   plants: PlantInstance[];
-  gardenAccessories: AccessoryInstance[]; // NEW: independent accessories
+  gardenAccessories: AccessoryInstance[];
   plantData: Plant[];
   accessories: Accessory[];
   isEditMode: boolean;
   backgroundTheme: string;
   selectedAccessory?: string | null;
+  selectedPlant?: string | null;
   placementMode?: 'plant' | 'accessory' | null;
   onPlantMove: (plantId: string, position: Position) => void;
   onPlantRemove: (plantId: string) => void;
@@ -37,6 +36,7 @@ export const GardenCanvas = ({
   isEditMode,
   backgroundTheme,
   selectedAccessory,
+  selectedPlant, // FIXED: Use this prop
   placementMode,
   onPlantMove,
   onPlantRemove,
@@ -59,11 +59,10 @@ export const GardenCanvas = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     console.log('Drag Start Event:', event);
-    
-    // Check if it's a plant or accessory being dragged
+
     const plant = plants.find(p => p.id === event.active.id);
     const accessory = (gardenAccessories || []).find(a => a.id === event.active.id);
-    
+
     if (plant) {
       console.log('Found Plant for Drag:', plant);
       setDraggedPlant(plant);
@@ -78,17 +77,17 @@ export const GardenCanvas = ({
   const handleDragEnd = (event: DragEndEvent) => {
     console.log('Drag End Event:', event);
     const { active, delta, over } = event;
-    
+
     if (active && over && over.id === 'garden-canvas') {
       const dragData = active.data.current;
-      
+
       if (dragData?.source === 'palette' && onAddPlant) {
         // Dragging from palette - add new plant at center for now
         const centerPosition = {
-          x: 400, // Center of 800px canvas
-          y: 200  // Center of 400px canvas
+          x: 400,
+          y: 200
         };
-        
+
         if (dragData.plantId) {
           onAddPlant(dragData.plantId, centerPosition);
         }
@@ -96,7 +95,7 @@ export const GardenCanvas = ({
         // Check if dragging plant or accessory
         const plant = plants.find(p => p.id === active.id);
         const accessory = (gardenAccessories || []).find(a => a.id === active.id);
-        
+
         if (plant && onPlantMove) {
           // Dragging existing plant
           const newPosition = {
@@ -114,7 +113,7 @@ export const GardenCanvas = ({
         }
       }
     }
-    
+
     setDraggedPlant(null);
     setDraggedAccessory(null);
   };
@@ -122,34 +121,34 @@ export const GardenCanvas = ({
   const handleCanvasClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Don't add items if clicking on existing plants/accessories or during drag operations
     if (!isEditMode || (draggedPlant || draggedAccessory)) return;
-    
-    // Check if click target is a plant or accessory
+
     const target = event.target as HTMLElement;
     if (target.closest('[data-plant-id]') || target.closest('[data-accessory-id]')) {
-      return; // Clicked on existing item, don't add new item
+      return;
     }
-    
+
     const rect = event.currentTarget.getBoundingClientRect();
     const position = {
       x: event.clientX - rect.left,
       y: event.clientY - rect.top
     };
-    
-    // Handle placement based on mode and selection
+
     if (placementMode === 'accessory' && selectedAccessory && onAddAccessory) {
+      console.log('Adding accessory:', selectedAccessory, 'at position:', position);
       onAddAccessory(selectedAccessory, position);
-    } else if (placementMode === 'plant' && onAddPlant) {
-      // Add selected plant or default to first owned plant
-      const ownedPlant = plantData.find(p => p.owned);
-      if (ownedPlant) {
-        onAddPlant(ownedPlant.id, position);
+    } else if (placementMode === 'plant' && selectedPlant && onAddPlant) {
+      console.log('Adding plant:', selectedPlant, 'at position:', position);
+      onAddPlant(selectedPlant, position);
+    } else if (!placementMode) {
+      // Only add plant if one is selected, don't default to first owned
+      if (selectedPlant && onAddPlant) {
+        console.log('Adding selected plant:', selectedPlant, 'at position:', position);
+        onAddPlant(selectedPlant, position);
+      } else if (selectedAccessory && onAddAccessory) {
+        console.log('Adding selected accessory:', selectedAccessory, 'at position:', position);
+        onAddAccessory(selectedAccessory, position);
       }
-    } else if (!placementMode && onAddPlant) {
-      // Default behavior - add plant
-      const ownedPlant = plantData.find(p => p.owned);
-      if (ownedPlant) {
-        onAddPlant(ownedPlant.id, position);
-      }
+      // Don't add anything if nothing is selected
     }
   };
 
@@ -171,14 +170,12 @@ export const GardenCanvas = ({
             {element.emoji}
           </div>
         ))}
-        
-        {/* Dynamic Ground */}
+
         <div className={`absolute bottom-0 left-0 right-0 h-6 rounded-b-lg ${theme?.ground.gradient || 'bg-gradient-to-t from-amber-700 to-amber-500'}`}></div>
-        
-        {/* Edit Mode Grid Overlay */}
+
         {isEditMode && (
           <div className="absolute inset-0 pointer-events-none">
-            <div 
+            <div
               className="w-full h-full opacity-20"
               style={{
                 backgroundImage: `
@@ -191,17 +188,6 @@ export const GardenCanvas = ({
           </div>
         )}
 
-        {/* Edit Mode Instructions */}
-        {isEditMode && plants.length === 0 && gardenAccessories.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-white bg-opacity-90 px-6 py-4 rounded-lg text-center shadow-lg">
-              <p className="text-sm text-gray-600">Click anywhere to add items</p>
-              <p className="text-xs text-gray-500">Drag items to move them around</p>
-            </div>
-          </div>
-        )}
-
-        {/* Render Plants */}
         {plants.map((plantInstance) => {
           const plant = plantData.find(p => p.id === plantInstance.plantId);
           if (!plant) return null;
