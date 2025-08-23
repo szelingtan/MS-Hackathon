@@ -311,15 +311,15 @@ const UserDashboard = () => {
               <span className="hidden sm:inline">My Garden</span>
               <span className="sm:hidden">Garden</span>
             </TabsTrigger>
-            <TabsTrigger value="feed" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
-              <MapPin className="h-4 w-4" />
-              <span className="hidden sm:inline">Projects Map</span>
-              <span className="sm:hidden">Map</span>
-            </TabsTrigger>
             <TabsTrigger value="leaderboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Trophy className="h-4 w-4" />
               <span className="hidden sm:inline">Leaderboard</span>
               <span className="sm:hidden">Leaders</span>
+            </TabsTrigger>
+            <TabsTrigger value="feed" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <MapPin className="h-4 w-4" />
+              <span className="hidden sm:inline">Projects Map</span>
+              <span className="sm:hidden">Map</span>
             </TabsTrigger>
           </TabsList>
 
