@@ -120,6 +120,7 @@ interface ImpactStory {
   category?: string;
   tags?: string[];
   location?: string;
+  userDonated?: number | boolean;
 }
 
 interface DonationProject {
@@ -347,7 +348,6 @@ const SidePanel: React.FC<SidePanelProps> = ({
     navigate(`/project/${id}`);
   };
 
-
   const filteredStories = selectedDistrict 
     ? (() => {
         const mappedDistricts = mapDistrictToDataDistrict[selectedDistrict] || [selectedDistrict];
@@ -355,6 +355,14 @@ const SidePanel: React.FC<SidePanelProps> = ({
         return stories.filter(story => mappedDistricts.includes(story.district));
       })()
     : stories;
+
+  const sortedFilteredStories = [...filteredStories].sort((a, b) => {
+    // User donated stories go to the top (1 or true are both truthy values)
+    if ((a.userDonated && !b.userDonated) || (a.userDonated === 1 && b.userDonated !== 1)) return -1;
+    if ((!a.userDonated && b.userDonated) || (a.userDonated !== 1 && b.userDonated === 1)) return 1;
+    // Otherwise maintain original order
+    return 0;
+  });
     
   const filteredProjects = selectedDistrict
     ? (() => {
@@ -401,16 +409,24 @@ const SidePanel: React.FC<SidePanelProps> = ({
             </TabsList>
 
             <TabsContent value="stories" className="mt-4">
-              {filteredStories.length > 0 ? (
+              {sortedFilteredStories.length > 0 ? (
                 <div className="space-y-4">
-                  {filteredStories.map((story) => (
+                  {sortedFilteredStories.map((story) => (
                     <Card 
                       key={story.id} 
-                      className="border-l-4 border-l-plant-growth cursor-pointer hover:shadow-md transition-shadow"
+                      className={`border-l-4 ${story.userDonated ? 'border-l-yellow-400' : 'border-l-plant-growth'} cursor-pointer hover:shadow-md transition-shadow`}
                       onClick={() => handleStoryClick(story)}
                     >
                       <CardContent className="p-4">
-                        <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
+                          {story.userDonated && (
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                              <Heart className="h-3 w-3 mr-1 fill-yellow-500" />
+                              Supported
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-3">
                           {story.description}
                         </p>
