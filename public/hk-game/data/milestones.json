@@ -252,5 +252,34 @@
     "district": "Tai Po",
     "title": "STEM Innovation Lab",
     "milestones": []
+  },
+    {
+    "projectId": 19,
+    "district": "Tai Po",
+    "title": "Sunnydale Elementary Computer Lab",
+    "milestones": [
+        {
+        "id": "mile-20-1",
+        "title": "Sunnydale Elementary Computer Lab Upgrade",
+        "description": "75% of computers have been ordered! Installation begins next month.",
+        "impact": "-",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-31"
+      }
+    ]},
+  {
+    "projectId": 20,
+    "district": "Tai Po",
+    "title": "Green Valley Environmental Education",
+    "milestones": [
+        {
+        "id": "mile-20-1",
+        "title": "Sustainability and environmental awareness program",
+        "description": "First round of environmental workshops completed successfully.",
+        "impact": "10 children participated in this workshop",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-31"
+      }
+    ]
   }
 ]

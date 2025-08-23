@@ -1,10 +1,11 @@
-import { Badge } from "lucide-react";
+import { Badge, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useNavigate } from 'react-router-dom';
 
 const ProfileProjects = () => {
   const projects = [
     {
-      id: 1,
+      id: 19,
       title: "Sunnydale Elementary Computer Lab",
       description: "Building a new computer lab with 20 computers for students",
       totalGoal: 5000,
@@ -14,7 +15,7 @@ const ProfileProjects = () => {
       progress: 64
     },
     {
-      id: 2,
+      id: 20,
       title: "Green Valley Environmental Education",
       description: "Sustainability and environmental awareness program",
       totalGoal: 12000,
@@ -24,6 +25,10 @@ const ProfileProjects = () => {
       progress: 71
     }
   ];
+  const navigate = useNavigate();
+  const viewDetails = (id: number) => {
+    navigate(`/project/${id}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -58,6 +63,13 @@ const ProfileProjects = () => {
             <CardHeader>
               <CardTitle className="text-lg">{project.title}</CardTitle>
               <p className="text-sm text-muted-foreground">{project.description}</p>
+              <button
+                onClick={() => viewDetails(project.id)}
+                className="inline-flex text-sm text-blue-600 hover:text-blue-800 hover:underline transition"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View Details
+              </button>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Progress */}
