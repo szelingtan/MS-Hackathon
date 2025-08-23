@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sprout, Telescope, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/landingpage.png";
+import logoImage from "@/assets/newlogo.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -22,20 +23,22 @@ const Landing = () => {
               
               {/* Hero Content */}
               <div className="space-y-8 text-center lg:text-left pl-0 lg:pl-8">
-                {/* App Name */}
-                <div className="flex items-center justify-center lg:justify-start space-x-3 mb-8">
-                  <Sprout className="h-10 w-10 text-plant-growth animate-leaf-sway" />
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">ReachTogether</h1>
+                {/* Logo and Title */}
+                <div className="flex items-center space-x-4 mb-6 -ml-4 mt-8">
+                  <img src={logoImage} alt="ReachTogether" className="h-56 w-auto" />
+                  <div className="flex flex-col mt-6">
+                    <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-none">Growing</h2>
+                    <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-none">Communities</h2>
+                    <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-none">
+                      <span className="bg-gradient-growth bg-clip-text text-transparent">Together</span>
+                    </h2>
+                  </div>
                 </div>
 
-                {/* Main Title */}
-                <div>
-                  <h2 className="text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-6">
-                    Growing Communities
-                    <span className="bg-gradient-growth bg-clip-text text-transparent"> Together</span>
-                  </h2>
+                {/* Main Description */}
+                <div className="mt-4">
                   <p className="text-xl lg:text-2xl text-muted-foreground leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                    Join our donor community to support schools and communities. 
+                    Join Project Reach's donor community to support schools and communities. 
                     Grow your virtual plant while making real impact in the world.
                   </p>
                 </div>

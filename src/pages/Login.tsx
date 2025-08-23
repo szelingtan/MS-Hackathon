@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sprout, Users, Shield } from "lucide-react";
+import { Users, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import logoImage from "@/assets/newlogo.png";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -45,12 +46,13 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-sky flex items-center justify-center">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <Sprout className="h-12 w-12 text-plant-growth animate-leaf-sway" />
-            <h1 className="text-4xl font-bold text-primary">Reach Together</h1>
+          <div className="flex items-center justify-center space-x-4 mb-6">
+            <img src={logoImage} alt="ReachTogether" className="h-20 w-auto" />
+            <div className="text-left">
+              <h1 className="text-4xl font-bold text-primary">Welcome Back</h1>
+              <p className="text-lg text-muted-foreground">Choose your login type to continue</p>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold text-foreground mb-4">Welcome Back</h2>
-          <p className="text-lg text-muted-foreground">Choose your login type to continue</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
