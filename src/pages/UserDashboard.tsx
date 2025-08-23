@@ -83,24 +83,59 @@ const UserDashboard = () => {
     setIsProcessing(true);
 
     try {
-      // If we have a specific project, use its details for Firestore
+      let result;
+      
       if (currentProject) {
-      // This will tell the map component about the donation
-      const hongKongMapElement = document.querySelector('[data-hongkong-map]');
+        // Project-specific donation - call Firebase processDonation with project details
+        result = await processDonation(
+          donationAmount, 
+          currentProject.id, // Use project ID as target district ID
+          currentProject.id, // Also pass as project ID
+          currentProject.title // Pass project title
+        );
+        
+        // Update localStorage for the map component to track user's donations
+        const loadMyDonations = () => {
+          try {
+            const raw = localStorage.getItem('hk_game_my_donations');
+            return raw ? (JSON.parse(raw) as Record<number, number>) : {};
+          } catch { return {}; }
+        };
+        
+        const saveMyDonations = (obj: Record<number, number>) => {
+          try { 
+            localStorage.setItem('hk_game_my_donations', JSON.stringify(obj)); 
+          } catch (error) {
+            console.error('Failed to save donations to localStorage:', error);
+          }
+        };
+        
+        // Update localStorage with user's donation to this project
+        const currentDonations = loadMyDonations();
+        const updatedDonations = {
+          ...currentDonations,
+          [currentProject.id]: (currentDonations[currentProject.id] || 0) + donationAmount
+        };
+        saveMyDonations(updatedDonations);
+        
+        console.log('Updated user donations:', updatedDonations); // Debug log
+        
+        // Notify the map component about the donation
+        const hongKongMapElement = document.querySelector('[data-hongkong-map]');
         if (hongKongMapElement) {
-          // Use a custom event to communicate with the map component
           hongKongMapElement.dispatchEvent(new CustomEvent('donation-made', {
             detail: {
               projectId: currentProject.id,
               amount: donationAmount
             }
           }));
+          console.log('Dispatched donation event for project:', currentProject.id, 'amount:', donationAmount); // Debug log
         }
+        
+        toast.success(`Thank you for donating $${donationAmount} to ${currentProject.title}! You received ${result.waterDropsEarned} water drops! 💧`);
       } else {
         // General donation without specific project
-        const result = await processDonation(donationAmount, 1);
-        
-        // Show success message with the water drops earned from processDonation
+        result = await processDonation(donationAmount, 1);
         toast.success(`Thank you for donating $${donationAmount}! You received ${result.waterDropsEarned} water drops! 💧`);
       }
       

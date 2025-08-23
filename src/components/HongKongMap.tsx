@@ -53,7 +53,7 @@ interface Point { x: number; y: number; }
 
 interface Feature {
   id: string | number;
-  properties: Record<string, any>;
+  properties: Record<string, string | number | boolean | null>;
   geometry: GeoJSONGeometry;
 }
 
@@ -132,6 +132,7 @@ interface DonationProject {
   urgency: 'low' | 'medium' | 'high';
   category: string;
   image: string;
+  userDonation?: number; // Track user's contribution to this project
 }
 
 // District name to ID mapping for Firestore (not used for donations)
@@ -467,6 +468,22 @@ const SidePanel: React.FC<SidePanelProps> = ({
   );
 };
 
+// Helper functions moved outside component for stability
+const loadMyDonations = () => {
+  try {
+    const raw = localStorage.getItem('hk_game_my_donations');
+    return raw ? (JSON.parse(raw) as Record<number, number>) : {};
+  } catch { return {}; }
+};
+
+const saveMyDonations = (obj: Record<number, number>) => {
+  try { 
+    localStorage.setItem('hk_game_my_donations', JSON.stringify(obj)); 
+  } catch (error) {
+    console.error('Failed to save donations:', error);
+  }
+};
+
 const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKongMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapInstance | null>(null);
@@ -485,17 +502,6 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   
   const { user } = useAuth(); // CHANGED: do not call processDonation here (donations aren't via Firestore)
-
-  // NEW helpers: local storage for your own donation overlay
-  const loadMyDonations = () => {
-    try {
-      const raw = localStorage.getItem('hk_game_my_donations');
-      return raw ? (JSON.parse(raw) as Record<number, number>) : {};
-    } catch { return {}; }
-  };
-  const saveMyDonations = (obj: Record<number, number>) => {
-    try { localStorage.setItem('hk_game_my_donations', JSON.stringify(obj)); } catch {}
-  };
 
   useEffect(() => { setMyDonations(loadMyDonations()); }, []);
 
@@ -541,8 +547,43 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
   useEffect(() => {
     const handleDonationEvent = (e: Event) => {
       const { projectId, amount } = (e as CustomEvent).detail;
+      console.log('Map received donation event:', { projectId, amount }); // Debug log
+      
       if (projectId && amount) {
-        applyDonationLocal(projectId, amount);
+        // Update the local state immediately for UI responsiveness
+        setProjects(prev => {
+          const updated = prev.map(p => p.id === projectId
+            ? { ...p, raised: p.raised + amount, supporters: p.supporters + 1 }
+            : p
+          );
+          console.log('Updated projects:', updated.find(p => p.id === projectId)); // Debug log
+          return updated;
+        });
+
+        // Update user donations tracking
+        setMyDonations(prev => {
+          const next = { ...prev, [projectId]: (prev[projectId] || 0) + amount };
+          saveMyDonations(next);
+          console.log('Updated my donations:', next); // Debug log
+          return next;
+        });
+        
+        // Reload data from localStorage to get updated user donations
+        const userDonations = loadMyDonations();
+        console.log('Reloaded user donations from localStorage:', userDonations); // Debug log
+        setMyDonations(userDonations);
+        
+        // Update projects with new user donation amounts
+        setProjects(prev => prev.map(project => {
+          if (project.id === projectId) {
+            const userAmount = userDonations[project.id] || 0;
+            return {
+              ...project,
+              userDonation: userAmount
+            };
+          }
+          return project;
+        }));
       }
     };
     
@@ -550,6 +591,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
     if (mapElement) {
       mapElement.setAttribute('data-hongkong-map', '');
       mapElement.addEventListener('donation-made', handleDonationEvent);
+      console.log('Map component set up donation event listener'); // Debug log
       return () => {
         mapElement.removeEventListener('donation-made', handleDonationEvent);
       };
@@ -580,24 +622,6 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
         duration: 1000
       });
     }
-  };
-
-  // NEW: apply donation locally + try to persist via simple API (server should update the JSON files)
-  const applyDonationLocal = (projectId: number, amount: number) => {
-    if (!isFinite(amount) || amount <= 0) return;
-
-    setProjects(prev =>
-      prev.map(p => p.id === projectId
-        ? { ...p, raised: p.raised + amount, supporters: p.supporters + 1 }
-        : p
-      )
-    );
-
-    setMyDonations(prev => {
-      const next = { ...prev, [projectId]: (prev[projectId] || 0) + amount };
-      saveMyDonations(next);
-      return next;
-    });
   };
 
   // NEW: attempt server persistence; no-op if endpoint is absent
@@ -648,7 +672,21 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
       toast.error('Please enter a valid amount.');
       return;
     }
-    applyDonationLocal(project.id, amount);
+    
+    // Apply donation locally for fallback case
+    setProjects(prev =>
+      prev.map(p => p.id === project.id
+        ? { ...p, raised: p.raised + amount, supporters: p.supporters + 1 }
+        : p
+      )
+    );
+
+    setMyDonations(prev => {
+      const next = { ...prev, [project.id]: (prev[project.id] || 0) + amount };
+      saveMyDonations(next);
+      return next;
+    });
+    
     persistDonation(project.id, amount);
     toast.success('Thank you for your donation!');
   };
@@ -679,7 +717,11 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
           const geojson = await res.json() as GeoJSONData;
           
           geojson.features.forEach((f: Feature, i: number) => { 
-            f.id = f.properties.OBJECTID || f.properties.FID || i.toString();
+            const objectId = f.properties.OBJECTID;
+            const fid = f.properties.FID;
+            f.id = (typeof objectId === 'string' || typeof objectId === 'number' ? objectId : 
+                   typeof fid === 'string' || typeof fid === 'number' ? fid : 
+                   i.toString());
           });
 
           map.current!.addSource('hk', { type: 'geojson', data: geojson });
