@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp, FieldValue } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment, addDoc, serverTimestamp, FieldValue, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface PlantInventory {
@@ -324,24 +324,170 @@ export const useAuth = () => {
     }
   };
 
-  // Check for existing session on mount
+  // Check for existing session on mount and sync with Firebase
   useEffect(() => {
     if (initialized) return; // Only run once
     
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser) as UserProfile;
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('user');
+    const initializeUserData = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser) as UserProfile;
+          
+          // First set the localStorage user to show something immediately
+          setUser(parsedUser);
+          
+          // Now sync with Firebase to get the latest data
+          console.log('Syncing user data from Firebase on app reload...');
+          
+          try {
+            const collectionName = parsedUser.role === 'donor' ? 'donors' : 'admins';
+            const userRef = doc(db, collectionName, parsedUser.user_id);
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+              const firestoreData = userDoc.data();
+              
+              let updatedUser: UserProfile;
+              
+              if (parsedUser.role === 'donor') {
+                // Parse inventory if it's a donor
+                let parsedInventory: PlantInventory;
+                try {
+                  parsedInventory = typeof firestoreData.inventory === 'string' 
+                    ? JSON.parse(firestoreData.inventory) 
+                    : firestoreData.inventory || { plants: [], accessories: [] };
+                } catch (error) {
+                  console.error('Error parsing inventory JSON:', error);
+                  parsedInventory = { plants: [], accessories: [] };
+                }
+                
+                updatedUser = {
+                  ...parsedUser,
+                  name: firestoreData.name || parsedUser.name,
+                  email: firestoreData.email || parsedUser.email,
+                  district_id: firestoreData.district_id || parsedUser.district_id,
+                  donated_amount: firestoreData.donated_amount || 0,
+                  water_amount: firestoreData.water_amount || 0,
+                  inventory: parsedInventory,
+                  _lastUpdated: Date.now()
+                };
+              } else {
+                // Admin user
+                updatedUser = {
+                  ...parsedUser,
+                  name: firestoreData.name || parsedUser.name,
+                  email: firestoreData.email || parsedUser.email,
+                  _lastUpdated: Date.now()
+                };
+              }
+
+              // Update both state and localStorage with fresh Firebase data
+              setUser(updatedUser);
+              localStorage.setItem('user', JSON.stringify(updatedUser));
+              setUpdateCounter(prev => prev + 1);
+              
+              console.log('User data synced successfully from Firebase:', {
+                old_water: parsedUser.water_amount,
+                new_water: updatedUser.water_amount,
+                old_donated: parsedUser.donated_amount,
+                new_donated: updatedUser.donated_amount
+              });
+              
+            } else {
+              console.warn('User document not found in Firebase, using localStorage data');
+            }
+          } catch (firebaseError) {
+            console.error('Error syncing with Firebase, using localStorage data:', firebaseError);
+            // Keep the localStorage data if Firebase fails
+          }
+          
+        } catch (error) {
+          console.error('Error parsing stored user data:', error);
+          localStorage.removeItem('user');
+        }
       }
-    }
+      
+      setLoading(false);
+      setInitialized(true);
+    };
     
-    setLoading(false);
-    setInitialized(true);
+    initializeUserData();
   }, [initialized]);
+
+  // Manual refresh function to sync latest data from Firebase
+  const refreshUserData = async (): Promise<UserProfile | null> => {
+    if (!user?.user_id) {
+      console.warn('No user to refresh');
+      return null;
+    }
+
+    try {
+      console.log('Manually refreshing user data from Firebase...');
+      
+      const collectionName = user.role === 'donor' ? 'donors' : 'admins';
+      const userRef = doc(db, collectionName, user.user_id);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const firestoreData = userDoc.data();
+        
+        let updatedUser: UserProfile;
+        
+        if (user.role === 'donor') {
+          // Parse inventory if it's a donor
+          let parsedInventory: PlantInventory;
+          try {
+            parsedInventory = typeof firestoreData.inventory === 'string' 
+              ? JSON.parse(firestoreData.inventory) 
+              : firestoreData.inventory || { plants: [], accessories: [] };
+          } catch (error) {
+            console.error('Error parsing inventory JSON:', error);
+            parsedInventory = { plants: [], accessories: [] };
+          }
+          
+          updatedUser = {
+            ...user,
+            name: firestoreData.name || user.name,
+            email: firestoreData.email || user.email,
+            district_id: firestoreData.district_id || user.district_id,
+            donated_amount: firestoreData.donated_amount || 0,
+            water_amount: firestoreData.water_amount || 0,
+            inventory: parsedInventory,
+            _lastUpdated: Date.now()
+          };
+        } else {
+          // Admin user
+          updatedUser = {
+            ...user,
+            name: firestoreData.name || user.name,
+            email: firestoreData.email || user.email,
+            _lastUpdated: Date.now()
+          };
+        }
+
+        // Update both state and localStorage with fresh Firebase data
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setUpdateCounter(prev => prev + 1);
+        
+        console.log('User data refreshed successfully:', {
+          old_water: user.water_amount,
+          new_water: updatedUser.water_amount,
+          old_donated: user.donated_amount,
+          new_donated: updatedUser.donated_amount
+        });
+        
+        return updatedUser;
+      } else {
+        console.warn('User document not found in Firebase during refresh');
+        return user;
+      }
+    } catch (error) {
+      console.error('Error refreshing user data from Firebase:', error);
+      throw error;
+    }
+  };
 
   return { 
     user, 
@@ -354,6 +500,7 @@ export const useAuth = () => {
     updateDonatedAmount,
     updateInventory,
     processDonation, // New donation function
+    refreshUserData, // Manual refresh from Firebase
     isAuthenticated: !!user && initialized, // Only authenticated if initialized
     updateCounter // Expose update counter for components to detect changes
   };
