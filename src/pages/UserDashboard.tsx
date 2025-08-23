@@ -31,7 +31,7 @@ interface DonationProject {
 }
 
 const UserDashboard = () => {
-  const { user, logout, processDonation } = useAuth();
+  const { user, logout, processDonation, updateCounter } = useAuth();
   const { addWaterDrops } = useGardenBackend();
   const [activeTab, setActiveTab] = useState("game");
   const [donationAmount, setDonationAmount] = useState(10);
@@ -39,15 +39,46 @@ const UserDashboard = () => {
   const [currentProject, setCurrentProject] = useState<DonationProject | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   
+  // Force re-render when user water amount changes
+  const [renderKey, setRenderKey] = useState(0);
+  // Local copy of user water amount to ensure updates
+  const [localWaterAmount, setLocalWaterAmount] = useState(user?.water_amount || 0);
+  
   const navigate = useNavigate();
 
-  // Debug: Log when user water amount changes
+  // Update local water amount when user changes
+  useEffect(() => {
+    if (user?.water_amount !== undefined) {
+      setLocalWaterAmount(user.water_amount);
+    }
+  }, [user?.water_amount]);
+
+  // Listen for custom water drop update events
+  useEffect(() => {
+    const handleWaterDropUpdate = (event: CustomEvent) => {
+      console.log('Received waterDropsUpdated event:', event.detail);
+      setLocalWaterAmount(event.detail.newTotal || user?.water_amount || 0);
+      setRenderKey(prev => prev + 1);
+    };
+
+    window.addEventListener('waterDropsUpdated', handleWaterDropUpdate);
+    
+    return () => {
+      window.removeEventListener('waterDropsUpdated', handleWaterDropUpdate);
+    };
+  }, [user?.water_amount]);
+
+  // Debug: Log when user water amount changes and force re-render
   useEffect(() => {
     if (user) {
       console.log('User water amount updated:', user.water_amount);
       console.log('User donated amount updated:', user.donated_amount);
+      console.log('User last updated timestamp:', user._lastUpdated);
+      console.log('Update counter:', updateCounter);
+      // Force component re-render by incrementing counter
+      setRenderKey(prev => prev + 1);
     }
-  }, [user]);
+  }, [user, updateCounter]);
 
   const goToProfile = () => {
     navigate('/profile');
@@ -83,24 +114,59 @@ const UserDashboard = () => {
     setIsProcessing(true);
 
     try {
-      // If we have a specific project, use its details for Firestore
+      let result;
+      
       if (currentProject) {
-      // This will tell the map component about the donation
-      const hongKongMapElement = document.querySelector('[data-hongkong-map]');
+        // Project-specific donation - call Firebase processDonation with project details
+        result = await processDonation(
+          donationAmount, 
+          currentProject.id, // Use project ID as target district ID
+          currentProject.id, // Also pass as project ID
+          currentProject.title // Pass project title
+        );
+        
+        // Update localStorage for the map component to track user's donations
+        const loadMyDonations = () => {
+          try {
+            const raw = localStorage.getItem('hk_game_my_donations');
+            return raw ? (JSON.parse(raw) as Record<number, number>) : {};
+          } catch { return {}; }
+        };
+        
+        const saveMyDonations = (obj: Record<number, number>) => {
+          try { 
+            localStorage.setItem('hk_game_my_donations', JSON.stringify(obj)); 
+          } catch (error) {
+            console.error('Failed to save donations to localStorage:', error);
+          }
+        };
+        
+        // Update localStorage with user's donation to this project
+        const currentDonations = loadMyDonations();
+        const updatedDonations = {
+          ...currentDonations,
+          [currentProject.id]: (currentDonations[currentProject.id] || 0) + donationAmount
+        };
+        saveMyDonations(updatedDonations);
+        
+        console.log('Updated user donations:', updatedDonations); // Debug log
+        
+        // Notify the map component about the donation
+        const hongKongMapElement = document.querySelector('[data-hongkong-map]');
         if (hongKongMapElement) {
-          // Use a custom event to communicate with the map component
           hongKongMapElement.dispatchEvent(new CustomEvent('donation-made', {
             detail: {
               projectId: currentProject.id,
               amount: donationAmount
             }
           }));
+          console.log('Dispatched donation event for project:', currentProject.id, 'amount:', donationAmount); // Debug log
         }
+        
+        toast.success(`Thank you for donating $${donationAmount} to ${currentProject.title}! You received ${result.waterDropsEarned} water drops! 💧`);
       } else {
         // General donation without specific project
-        const result = await processDonation(donationAmount, 1);
-        
-        // Show success message with the water drops earned from processDonation
+        result = await processDonation(donationAmount, 1);
         toast.success(`Thank you for donating $${donationAmount}! You received ${result.waterDropsEarned} water drops! 💧`);
       }
       
@@ -149,12 +215,20 @@ const UserDashboard = () => {
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <div className="flex items-center space-x-2 sm:space-x-4">
-                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                <Badge 
+                  key={`water-${renderKey}-${localWaterAmount}`}
+                  variant="secondary" 
+                  className="flex items-center gap-1 text-xs"
+                >
                   <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">{user.water_amount} drops</span>
-                  <span className="xs:hidden">{user.water_amount}</span>
+                  <span className="hidden xs:inline">{localWaterAmount} drops</span>
+                  <span className="xs:hidden">{localWaterAmount}</span>
                 </Badge>
-                <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                <Badge 
+                  key={`donated-${renderKey}-${user.donated_amount}`}
+                  variant="outline" 
+                  className="flex items-center gap-1 text-xs"
+                >
                   <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="hidden xs:inline">${user.donated_amount} donated</span>
                   <span className="xs:hidden">${user.donated_amount}</span>

@@ -37,6 +37,8 @@ interface UserProfile {
   donated_amount?: number;
   water_amount?: number;
   inventory?: PlantInventory;
+  // Add a timestamp to force re-renders
+  _lastUpdated?: number;
 }
 
 // Transaction record interface
@@ -55,6 +57,7 @@ export const useAuth = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true); // Start as true
   const [initialized, setInitialized] = useState(false); // Track if we've checked localStorage
+  const [updateCounter, setUpdateCounter] = useState(0); // Force component updates
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
@@ -164,15 +167,61 @@ export const useAuth = () => {
         water_amount: increment(amount)
       });
       
-      // Update local state
-      const updatedUser = { 
-        ...user, 
-        water_amount: (user.water_amount || 0) + amount 
-      };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      // Update local state with functional update to ensure React detects the change
+      setUser(prevUser => {
+        if (!prevUser) return prevUser;
+        const updatedUser = { 
+          ...prevUser, 
+          water_amount: (prevUser.water_amount || 0) + amount 
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log(`Updated water amount by ${amount}. New total: ${updatedUser.water_amount}`);
+        return updatedUser;
+      });
     } catch (error) {
       console.error('Error updating water amount:', error);
+      throw error;
+    }
+  };
+
+  // New function specifically for reward water drops (separate from donations)
+  const addRewardWaterDrops = async (amount: number) => {
+    if (!user || user.role !== 'donor') {
+      throw new Error('Only donors can receive water drop rewards');
+    }
+    
+    try {
+      const donorRef = doc(db, 'donors', user.user_id);
+      await updateDoc(donorRef, {
+        water_amount: increment(amount)
+      });
+      
+      // Update local state with functional update and timestamp to force React re-render
+      setUser(prevUser => {
+        if (!prevUser) return prevUser;
+        const updatedUser = { 
+          ...prevUser, 
+          water_amount: (prevUser.water_amount || 0) + amount,
+          _lastUpdated: Date.now() // Force React to see this as a new object
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log(`Added ${amount} reward water drops. New total: ${updatedUser.water_amount}`);
+        console.log('Updated user object with timestamp:', updatedUser._lastUpdated);
+        return updatedUser;
+      });
+      
+      // Force an additional state change to trigger re-renders
+      setUpdateCounter(prev => prev + 1);
+      
+      const newTotal = (user.water_amount || 0) + amount;
+      return {
+        success: true,
+        newWaterAmount: newTotal,
+        rewardAmount: amount
+      };
+    } catch (error) {
+      console.error('Error adding reward water drops:', error);
+      throw error;
     }
   };
 
@@ -301,9 +350,11 @@ export const useAuth = () => {
     logout, 
     updateProfile,
     updateWaterAmount,
+    addRewardWaterDrops, // New function for reward water drops
     updateDonatedAmount,
     updateInventory,
     processDonation, // New donation function
-    isAuthenticated: !!user && initialized // Only authenticated if initialized
+    isAuthenticated: !!user && initialized, // Only authenticated if initialized
+    updateCounter // Expose update counter for components to detect changes
   };
 };
