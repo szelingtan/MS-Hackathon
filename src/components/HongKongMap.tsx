@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 // import { Progress } from "@/components/ui/progress"; // CHANGED: we render a custom bar to overlay "your" portion
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter } from "lucide-react";
+import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter, Droplets } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
@@ -182,6 +182,51 @@ const StoryDetailModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
 }> = ({ story, isOpen, onClose }) => {
+  const { user, addRewardWaterDrops } = useAuth();
+  const [isClaimingReward, setIsClaimingReward] = useState(false);
+  const [hasClaimedReward, setHasClaimedReward] = useState(false);
+
+  // Check if user has already claimed reward for this story
+  useEffect(() => {
+    if (story) {
+      const claimedStories = JSON.parse(localStorage.getItem('claimed_story_rewards') || '[]');
+      setHasClaimedReward(claimedStories.includes(story.id));
+    }
+  }, [story]);
+
+  const handleClaimWaterDrops = async () => {
+    if (!user || !story || hasClaimedReward || isClaimingReward) return;
+
+    setIsClaimingReward(true);
+    try {
+      // Add 25 water drops to user's account using the reward function
+      const result = await addRewardWaterDrops(25);
+      
+      // Mark this story as claimed in localStorage
+      const claimedStories = JSON.parse(localStorage.getItem('claimed_story_rewards') || '[]');
+      claimedStories.push(story.id);
+      localStorage.setItem('claimed_story_rewards', JSON.stringify(claimedStories));
+      setHasClaimedReward(true);
+      
+      // Dispatch custom event to notify parent components about water drop change
+      window.dispatchEvent(new CustomEvent('waterDropsUpdated', {
+        detail: { 
+          amount: result.rewardAmount,
+          newTotal: result.newWaterAmount,
+          source: 'story-reward'
+        }
+      }));
+      
+      // Show success message with the actual reward amount
+      toast.success(`🎉 You earned ${result.rewardAmount} water droplets for reading this story!`);
+    } catch (error) {
+      console.error('Error claiming water drops:', error);
+      toast.error('Failed to claim water drops. Please try again.');
+    } finally {
+      setIsClaimingReward(false);
+    }
+  };
+
   if (!isOpen || !story) return null;
 
   return (
@@ -252,6 +297,23 @@ const StoryDetailModal: React.FC<{
                     <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Water droplet reward button */}
+            {user && (
+              <div className="pt-4 border-t">
+                <Button 
+                  onClick={handleClaimWaterDrops}
+                  disabled={hasClaimedReward || isClaimingReward}
+                  className="w-full flex items-center justify-center gap-2"
+                  variant={hasClaimedReward ? "outline" : "default"}
+                >
+                  <Droplets className="h-4 w-4" />
+                  {isClaimingReward ? 'Claiming...' : 
+                   hasClaimedReward ? 'Reward Already Claimed' : 
+                   'Get free 25 water droplets'}
+                </Button>
               </div>
             )}
           </div>
@@ -501,7 +563,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
   // Donation dialog state (kept minimal)
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   
-  const { user } = useAuth(); // CHANGED: do not call processDonation here (donations aren't via Firestore)
+  const { user, processDonation } = useAuth(); // CHANGED: do not call processDonation here (donations aren't via Firestore)
 
   useEffect(() => { setMyDonations(loadMyDonations()); }, []);
 
