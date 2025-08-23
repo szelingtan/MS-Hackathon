@@ -114,11 +114,11 @@ const progress = Math.min(100, (projectData.raised / projectData.goal) * 100)
 return (
     <div className="max-w-4xl mx-auto py-10 px-4">
         {/* Card container */}
-        <div className="bg-white rounded-lg shadow-lg p-8 space-y-8">
+        <div className="relative bg-white rounded-lg shadow-lg p-8 space-y-8">
         {/* Back Button */}
         <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition duration-150 mb-6"
+            className="inline-flex items-center gap-2 text-sm font-medium text-sm text-[#b58863] hover:text-[#a06f43] transition duration-150 mb-6"
         >
             <svg
             xmlns="http://www.w3.org/2000/svg"

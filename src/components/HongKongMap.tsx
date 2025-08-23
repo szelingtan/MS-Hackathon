@@ -467,19 +467,17 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                 <Clock className="h-3 w-3 mr-1" />
                                 {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
                               </Badge>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{project.description}</p>
                               <button
                                 onClick={() => viewDetails(project.id)}
-                                className="ml-2 inline-flex text-sm text-[#b58863] hover:text-[#a06f43] hover:underline transition"
+                                className="mb-4 inline-flex text-sm text-blue-600 hover:text-blue-800 hover:underline transition"
                               >
                                 <ExternalLink className="h-4 w-4" />
                                 View Details
                               </button>
-                            </div>
-                            <Badge variant="secondary" className="text-xs">{project.category}</Badge>
-                          </div>
-
-                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{project.description}</p>
-
                           <div className="space-y-3">
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-muted-foreground">Progress</span>

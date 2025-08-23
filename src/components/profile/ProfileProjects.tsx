@@ -65,7 +65,7 @@ const ProfileProjects = () => {
               <p className="text-sm text-muted-foreground">{project.description}</p>
               <button
                 onClick={() => viewDetails(project.id)}
-                className="ml-2 inline-flex text-sm text-[#b58863] hover:text-[#a06f43] hover:underline transition"
+                className="inline-flex text-sm text-blue-600 hover:text-blue-800 hover:underline transition"
               >
                 <ExternalLink className="h-4 w-4" />
                 View Details
