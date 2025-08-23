@@ -1,6 +1,6 @@
+import { Accessory, Plant, PlantInstance } from '@/types/garden';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { PlantInstance, Plant, Accessory } from '@/types/garden';
 
 interface GardenPlantProps {
   plantInstance: PlantInstance;
@@ -104,24 +104,39 @@ export const GardenPlant = ({
       ref={setNodeRef}
       style={style}
       data-plant-id={plantInstance.id}
-      {...listeners}
-      {...attributes}
-      onClick={handleClick}
-      onDoubleClick={handleDoubleClick}
       className={`relative flex flex-col items-center ${isPlacementMode ? 'animate-pulse' : ''}`}
     >
-      {/* Remove button in edit mode */}
+      {/* Remove button in edit mode - Outside of draggable area */}
       {isEditMode && onRemove && (
         <button
           onClick={(e) => {
             e.stopPropagation();
+            e.preventDefault();
+            console.log('Delete button clicked for plant:', plantInstance.id);
             onRemove();
           }}
-          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs z-10 flex items-center justify-center"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+          }}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs z-20 flex items-center justify-center shadow-lg cursor-pointer"
         >
           ×
         </button>
       )}
+
+      {/* Draggable plant content */}
+      <div
+        {...listeners}
+        {...attributes}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        className="cursor-grab active:cursor-grabbing"
+      >
 
       {/* Hat accessory */}
       {plantInstance.accessories.some(accId => accessories.find(a => a.id === accId && a.category === 'hats')) && (
@@ -182,6 +197,7 @@ export const GardenPlant = ({
             {accessories.find(a => plantInstance.accessories.includes(a.id) && a.category === 'special')?.emoji}
           </div>
         )}
+      </div>
       </div>
 
       {/* Placement mode indicator */}

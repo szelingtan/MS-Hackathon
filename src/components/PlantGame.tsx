@@ -1,17 +1,15 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sprout, Vote, Droplets, ShoppingCart, Star, Flame, Edit3, Eye } from "lucide-react";
-import { GardenCanvas } from "@/components/garden/GardenCanvas";
-import { PlantPalette } from "@/components/customization/PlantPalette";
 import { BackgroundPicker } from "@/components/customization/BackgroundPicker";
-import { useGardenLayout } from "@/hooks/useGardenLayout";
-import { useGardenBackend } from "@/hooks/useGardenBackend";
-import { Plant, Accessory } from "@/types/garden";
+import { PlantPalette } from "@/components/customization/PlantPalette";
+import { GardenCanvas } from "@/components/garden/GardenCanvas";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { backgroundThemes } from "@/data/backgroundThemes";
+import { useGardenBackend } from "@/hooks/useGardenBackend";
+import { useGardenLayout } from "@/hooks/useGardenLayout";
+import { Accessory, Plant } from "@/types/garden";
+import { Droplets, Edit3, Eye, Flame, ShoppingCart, Sprout, Vote } from "lucide-react";
+import { useState } from "react";
 
 interface PlantGameProps {
   userId?: string;
@@ -262,6 +260,22 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     updatePlantAccessories(plantId, newAccessories);
   };
 
+  // Debug wrapper for removePlant to see if it's being called
+  const handleRemovePlant = (plantId: string) => {
+    //console.log('Delete button clicked for plant:', plantId);
+    //console.log('Current plants:', gardenLayout.plants.map(p => p.id));
+    removePlant(plantId);
+    //console.log('After removal, plants:', gardenLayout.plants.filter(p => p.id !== plantId).map(p => p.id));
+  };
+
+  // Debug wrapper for removeAccessory to see if it's being called
+  const handleRemoveAccessory = (accessoryId: string) => {
+    //console.log('Delete button clicked for accessory:', accessoryId);
+    //console.log('Current accessories:', gardenLayout.accessories.map(a => a.id));
+    removeAccessory(accessoryId);
+    //console.log('After removal, accessories:', gardenLayout.accessories.filter(a => a.id !== accessoryId).map(a => a.id));
+  };
+
 
 
   return (
@@ -369,6 +383,7 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                 isEditMode={editMode}
                 backgroundTheme={gardenLayout.backgroundTheme}
                 selectedAccessory={selectedAccessory}
+                selectedPlant={selectedPlant}
                 placementMode={placementMode}
                 onPlantMove={updatePlantPosition}
                 onPlantRemove={removePlant}
@@ -393,10 +408,22 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                     <li>• <strong>Double-click items</strong> to remove them</li>
                     <li>• <strong>Switch to View Mode</strong> when done editing</li>
                   </ul>
+                  {/* Show which item is currently selected */}
                   {(selectedAccessory || selectedPlant) && (
                     <div className="mt-3 p-2 bg-yellow-100 rounded border border-yellow-300">
                       <p className="text-sm text-yellow-800 font-medium">
-                        ✨ {placementMode === 'accessory' ? 'Accessory' : 'Plant'} selected! Click in the garden to place it.
+                        ✨ {placementMode === 'accessory' 
+                          ? `${accessories.find(a => a.id === selectedAccessory)?.name} selected!` 
+                          : `${plants.find(p => p.id === selectedPlant)?.name} selected!`
+                        } Click in the garden to place it.
+                      </p>
+                    </div>
+                  )}
+                  {/* Show instruction when nothing is selected */}
+                  {!selectedAccessory && !selectedPlant && (
+                    <div className="mt-3 p-2 bg-gray-100 rounded border border-gray-300">
+                      <p className="text-sm text-gray-600">
+                        Select a plant or accessory from the palette below to start placing items.
                       </p>
                     </div>
                   )}
