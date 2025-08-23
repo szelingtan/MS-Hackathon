@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import ImpactFeed from "@/components/ImpactFeed";
@@ -48,6 +48,20 @@ const UserDashboard = () => {
   const [localWaterAmount, setLocalWaterAmount] = useState(user?.water_amount || 0);
   
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle tab query parameter from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    
+    // Valid tab values: game, leaderboard, feed
+    const validTabs = ['game', 'leaderboard', 'feed'];
+    
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
 
   // Update local water amount when user changes
   useEffect(() => {

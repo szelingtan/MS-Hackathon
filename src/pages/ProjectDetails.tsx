@@ -49,7 +49,7 @@ export default function ProjectDetails() {
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row gap-6 items-start">
-        <Image
+        <img
           src={project.image}
           alt={project.title}
           width={300}
@@ -112,7 +112,7 @@ export default function ProjectDetails() {
                 <CardTitle>{milestone.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Image
+                <img
                   src={milestone.image}
                   alt={milestone.title}
                   width={300}

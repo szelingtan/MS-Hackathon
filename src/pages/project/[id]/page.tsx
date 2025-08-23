@@ -117,7 +117,7 @@ return (
         <div className="relative bg-white rounded-lg shadow-lg p-8 space-y-8">
         {/* Back Button */}
         <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/dashboard?tab=feed")}
             className="inline-flex items-center gap-2 text-sm font-medium text-sm text-[#b58863] hover:text-[#a06f43] transition duration-150 mb-6"
         >
             <svg
