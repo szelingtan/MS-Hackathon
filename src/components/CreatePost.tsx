@@ -1,56 +1,80 @@
-import {Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; 
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useDropzone } from "react-dropzone";
-import React, { useState, useCallback, useEffect, useMemo } from "react";
-import { toast } from "@/components/ui/sonner";
+'use client';
 
-interface NewPostDialogProps {
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { useDropzone } from 'react-dropzone';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { toast } from '@/components/ui/sonner';
+
+interface CreatePostProps {
   onSubmit?: (post: {
     title: string;
     content: string;
+    impact: string;
     file?: File | null;
     schoolId: string | null;
   }) => void;
   triggerText?: string;
 }
 
-const NewPostDialog: React.FC<NewPostDialogProps> = ({
+const CreatePost: React.FC<CreatePostProps> = ({
   onSubmit,
-  triggerText = "+ New Post",
+  triggerText = '+ New Post',
 }) => {
-    // Hardcoded list of schools
-    const schools = [
-        { id: "school-1", name: "Greenwood High" },
-        { id: "school-2", name: "Riverdale Elementary" },
-        { id: "school-3", name: "Sunnydale Middle School" },
-    ];
+  const schools = [
+    { id: 'school-1', name: 'Greenwood High' },
+    { id: 'school-2', name: 'Riverdale Elementary' },
+    { id: 'school-3', name: 'Sunnydale Middle School' },
+  ];
 
-    const [newPost, setNewPost] = useState({ title: "", content: "" });
-    const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
-    const [open, setOpen] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
+  const [newPost, setNewPost] = useState({
+    title: '',
+    content: '',
+    impact: '',
+  });
 
-    const handleSubmit = () => {
-        if (!newPost.title.trim() || !newPost.content.trim() || !selectedSchool) return;
+  const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
 
-        onSubmit?.({ ...newPost, file, schoolId: selectedSchool });
+  const handleSubmit = () => {
+    if (
+      !newPost.title.trim() ||
+      !newPost.content.trim() ||
+      !newPost.impact.trim() ||
+      !selectedSchool
+    )
+      return;
 
-        toast("Post published", {
-        description: "Your post has been published successfully.",
-        action: {
-            label: "Undo",
-            onClick: () => console.log("Undo"),
-        },
-        position: "top-center"
+    onSubmit?.({
+      ...newPost,
+      file,
+      schoolId: selectedSchool,
     });
 
-    setNewPost({ title: "", content: "" });
+    toast('Post published', {
+      description: 'Your post has been published successfully.',
+      action: {
+        label: 'Undo',
+        onClick: () => console.log('Undo'),
+      },
+      position: 'top-center',
+    });
+
+    setNewPost({ title: '', content: '', impact: '' });
     setFile(null);
     setSelectedSchool(null);
     setOpen(false);
-    };
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -58,17 +82,17 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
-    onDrop,
-    multiple: false,
-    maxFiles: 1,
-    accept: {
-      "image/jpeg": [".jpeg", ".jpg"],
-      "image/png": [".png"],
-    },
-  });
+  const { getRootProps, getInputProps, isDragActive, fileRejections } =
+    useDropzone({
+      onDrop,
+      multiple: false,
+      maxFiles: 1,
+      accept: {
+        'image/jpeg': ['.jpeg', '.jpg'],
+        'image/png': ['.png'],
+      },
+    });
 
-  // Memoize preview URL
   const previewUrl = useMemo(() => {
     return file ? URL.createObjectURL(file) : null;
   }, [file]);
@@ -81,7 +105,7 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
     };
   }, [previewUrl]);
 
-   return (
+  return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-plant-growth text-white hover:bg-plant-growth/80">
@@ -103,13 +127,21 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
             }
           />
 
+          <Input
+            placeholder="Impact (e.g., '200 students reached')"
+            value={newPost.impact}
+            onChange={(e) =>
+              setNewPost((prev) => ({ ...prev, impact: e.target.value }))
+            }
+          />
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Target School
             </label>
             <select
               className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={selectedSchool ?? ""}
+              value={selectedSchool ?? ''}
               onChange={(e) => setSelectedSchool(e.target.value || null)}
             >
               <option value="">Select a school</option>
@@ -124,13 +156,13 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
           <div
             {...getRootProps()}
             className={`border-2 border-dashed p-4 text-center cursor-pointer rounded-md ${
-              isDragActive ? "border-green-500 bg-green-50" : "border-gray-300"
+              isDragActive ? 'border-green-500 bg-green-50' : 'border-gray-300'
             }`}
           >
             <input {...getInputProps()} />
             {isDragActive
-              ? "Drop the image here..."
-              : "Drag & drop an image here, or click to select one"}
+              ? 'Drop the image here...'
+              : 'Drag & drop an image here, or click to select one'}
           </div>
 
           {file && previewUrl && (
@@ -160,7 +192,7 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
           )}
 
           <Textarea
-            placeholder="Event/ Activity Description"
+            placeholder="Event / Activity Description"
             rows={4}
             value={newPost.content}
             onChange={(e) =>
@@ -175,6 +207,7 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
             disabled={
               !newPost.title.trim() ||
               !newPost.content.trim() ||
+              !newPost.impact.trim() ||
               !selectedSchool
             }
           >
@@ -186,4 +219,4 @@ const NewPostDialog: React.FC<NewPostDialogProps> = ({
   );
 };
 
-export default NewPostDialog;
+export default CreatePost;

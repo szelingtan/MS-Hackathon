@@ -7,13 +7,14 @@ import {
 import {
   Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target,
   MapPin, MessageCircle, Shield, LogOut, LayoutGrid, Activity, PieChart as PieIcon, Layers,
-  LucideIcon
+  LucideIcon,
+  Book
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import CreatePost from "@/components/CreatePost";
+import ImpactStoryFeed from '@/components/ImpactStoryFeed';
 
 type TimeRangeKey = '3months' | '6months' | '1year';
 type NavTab =
@@ -30,7 +31,6 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('6months');
   const [navTab, setNavTab] = useState<NavTab>('overview'); // NEW: navigation
-  const [posts, setPosts] = useState<PostType[]>([]);
 
   // --- Mock donor data ---
   const mockDonors = [
@@ -570,6 +570,10 @@ const AdminDashboard = () => {
     </Card>
   );
 
+  const ImpactStoriesCard = () => (
+    <ImpactStoryFeed/>
+  );
+
   // --- Navigation items ---
   const NAV_ITEMS: { key: NavTab; label: string; icon: LucideIcon }[] = [
     { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
@@ -579,6 +583,7 @@ const AdminDashboard = () => {
     { key: 'districts',          label: 'Amount by Districts',    icon: MapPin },
     { key: 'socialEngagement',   label: 'Social Engagement',      icon: MessageCircle },
     { key: 'impact',             label: 'Impact',                 icon: Layers },
+    { key: 'impactStories',      label: 'Impact Stories',         icon: Book },
   ];
 
   return (
@@ -592,12 +597,6 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <CreatePost onSubmit={(post) => {
-              setPosts((prev) => [...prev, post]);
-              console.log("New post saved:", post);
-            }} />
-
-
             <Badge variant="secondary">Admin: {user?.name}</Badge>
             <div className="flex space-x-2">
               <select
@@ -721,6 +720,7 @@ const AdminDashboard = () => {
         {navTab === 'districts' && <AmountByDistrictCard />}
         {navTab === 'socialEngagement' && <SocialEngagementCard />}
         {navTab === 'impact' && <ImpactCard />}
+        {navTab === 'impactStories' && <ImpactStoriesCard />}
       </div>
     </div>
   );
