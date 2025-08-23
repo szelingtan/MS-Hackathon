@@ -287,9 +287,9 @@ const UserDashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-2 sm:p-6">
-                <div className="w-full h-[400px] sm:h-[600px] overflow-hidden rounded-lg">
+                <div className="w-full rounded-lg">
                   <HongKongMap 
-                    height={window.innerWidth < 640 ? 400 : 600}
+                    height={window.innerWidth < 640 ? 300 : 600}
                     onDonationUpdate={handleDonationUpdate} 
                     onProjectDonate={handleProjectDonate}
                   />

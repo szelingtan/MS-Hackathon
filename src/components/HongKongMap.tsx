@@ -473,12 +473,12 @@ const SidePanel: React.FC<SidePanelProps> = ({
 
                             <div className="flex items-center justify-between">
                               <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-1 text-sm">
-                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex items-center flex-wrap sm:flex-nowrap whitespace-nowrap text-sm">
+                                  <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   <span className="font-medium text-plant-growth">
                                     {formatCurrency(project.raised)}
                                   </span>
-                                  <span className="text-muted-foreground">
+                                  <span className="text-muted-foreground whitespace-nowrap">
                                     / {formatCurrency(project.goal)}
                                   </span>
                                 </div>
@@ -942,26 +942,26 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
   }, []);
 
   return (
-    <div className="flex gap-4 h-full">
-      {/* Map */}
-      <div className="flex-1 relative">
+    <div className="flex flex-col lg:flex-row gap-4">
+      {/* Map - reduced height on mobile */}
+      <div className="w-full lg:flex-1 relative">
         <div 
           ref={mapContainer} 
           className="w-full rounded-lg border border-border shadow-soft"
-          style={{ height: `${height}px` }}
+          style={{ height: `${window.innerWidth < 1024 ? 250 : height}px` }}
         />
       </div>
 
       {/* Side Panel */}
-      <div className="w-96">
+      <div className="w-full lg:w-96 mt-4 lg:mt-0">
         <SidePanel
           selectedDistrict={selectedDistrict}
           stories={stories}
           projects={projects}
           onClearSelection={handleClearSelection}
           onDonate={handleProjectDonate}
-          panelHeight={height}
-          myDonations={myDonations} // NEW
+          panelHeight={window.innerWidth < 1024 ? 300 : height}
+          myDonations={myDonations}
         />
       </div>
     </div>
