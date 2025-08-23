@@ -259,12 +259,12 @@ const Leaderboard = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Most Popular Plants */}
+                        {/* Most Popular Garden */}
                         <Card className="shadow-plant">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Star className="h-6 w-6 text-accent" />
-                                    Most Popular Plants
+                                    Most Popular Garden
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -278,8 +278,8 @@ const Leaderboard = () => {
                                                 </div>
                                                 <PlantIcon className={`h-8 w-8 ${donor.districtColor}`} />
                                                 <div>
-                                                    <p className="font-medium">{donor.plantType}</p>
-                                                    <p className="text-sm text-muted-foreground">{donor.name}</p>
+                                                    <p className="font-medium">{donor.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{donor.district}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
@@ -292,7 +292,7 @@ const Leaderboard = () => {
                         </Card>
                     </div>
 
-                    {/* Your Current Rank */}
+                    {/* Your Current Standing */}
                     <Card className="shadow-soft bg-gradient-water/10">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -301,20 +301,34 @@ const Leaderboard = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <div className="flex items-center justify-center w-12 h-12 bg-water/20 rounded-full">
-                                        <span className="text-xl font-bold text-water">#{userData.rank}</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Donation Standing */}
+                                <div className="flex items-center space-x-4 p-4 bg-plant-growth/10 rounded-lg">
+                                    <div className="flex items-center justify-center w-12 h-12 bg-plant-growth/20 rounded-full">
+                                        <span className="text-xl font-bold text-plant-growth">#{userData.rank}</span>
                                     </div>
                                     <div>
                                         <p className="text-lg font-semibold">{userData.name}</p>
-                                        <p className="text-muted-foreground">${userData.totalDonated} donated</p>
+                                        <p className="text-sm text-muted-foreground">Amount Donated</p>
+                                        <p className="font-bold text-plant-growth">${userData.totalDonated}</p>
                                     </div>
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                    <p>Visit your profile to view</p>
-                                    <p>badges and achievements!</p>
+                                
+                                {/* Garden Votes Standing */}
+                                <div className="flex items-center space-x-4 p-4 bg-accent/10 rounded-lg">
+                                    <div className="flex items-center justify-center w-12 h-12 bg-accent/20 rounded-full">
+                                        <span className="text-xl font-bold text-accent">#4</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg font-semibold">{userData.name}</p>
+                                        <p className="text-sm text-muted-foreground">Garden Votes</p>
+                                        <p className="font-bold text-accent">24 votes</p>
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            <div className="text-center mt-4 text-sm text-muted-foreground">
+                                <p>Visit your profile to view badges and achievements!</p>
                             </div>
                         </CardContent>
                     </Card>
