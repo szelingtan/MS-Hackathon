@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import ImpactStoryFeed from '@/components/ImpactStoryFeed';
+import treeLogo from "@/assets/tree.png";
+import reachTogetherLogo from "@/assets/reachTogether.png";
 
 type TimeRangeKey = '3months' | '6months' | '1year';
 type NavTab =
@@ -592,8 +594,8 @@ const AdminDashboard = () => {
       <header className="border-b border-border/30 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-accent" />
-            <h1 className="text-2xl font-bold text-primary">ReachTogether Analytics</h1>
+            <img src={treeLogo} alt="Logo" className="h-8 w-auto" />
+            <img src={reachTogetherLogo} alt="Reach Together" className="h-6 w-auto mt-1" />
           </div>
 
           <div className="flex items-center space-x-4">

@@ -16,6 +16,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useGardenBackend } from "@/hooks/useGardenBackend";
+import treeLogo from "@/assets/tree.png";
+import reachTogetherLogo from "@/assets/reachTogether.png";
 
 interface DonationProject {
   id: number;
@@ -209,8 +211,8 @@ const UserDashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-2">
-              <Sprout className="h-8 w-8 text-plant-growth animate-leaf-sway" />
-              <h1 className="text-xl sm:text-2xl font-bold text-primary">Reach Together</h1>
+              <img src={treeLogo} alt="Logo" className="h-8 w-auto" />
+              <img src={reachTogetherLogo} alt="Reach Together" className="h-6 w-auto mt-1" />
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
