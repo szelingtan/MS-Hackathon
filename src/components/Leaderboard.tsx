@@ -143,28 +143,28 @@ const Leaderboard = () => {
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="voting" className="flex items-center gap-2">
                         <Sprout className="h-4 w-4" />
-                        Daily Voting
-                    </TabsTrigger>
-                    <TabsTrigger value="overall" className="flex items-center gap-2">
-                        <Trophy className="h-4 w-4" />
-                        Overall
+                        Daily Garden Voting
                     </TabsTrigger>
                     <TabsTrigger value="districts" className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        By District
+                        District Leaderboard
+                    </TabsTrigger>
+                    <TabsTrigger value="overall" className="flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
+                        Overall Leaderboard
                     </TabsTrigger>
                 </TabsList>
 
-                {/* Daily Plant Voting */}
+                {/* Daily Garden Competition */}
                 <TabsContent value="voting" className="space-y-6">
                     <Card className="shadow-plant">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Sprout className="h-6 w-6 text-plant-growth" />
-                                Daily Plant Competition
+                                Daily Garden Competition
                             </CardTitle>
                             <CardDescription>
-                                Vote for the most beautiful plant in each district! You can vote once per district daily.
+                                Vote for the most beautiful garden in each district! You can vote once per district daily.
                             </CardDescription>
                             {hasVotedToday && (
                                 <Badge className="bg-plant-growth/20 text-plant-growth border-plant-growth/30 w-fit">
@@ -201,7 +201,6 @@ const Leaderboard = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="font-medium">{donor.name}</p>
-                                                                <p className="text-sm text-muted-foreground">{donor.plantType}</p>
                                                                 <p className="text-xs text-muted-foreground">{donor.votes} votes today</p>
                                                             </div>
                                                         </div>
@@ -259,12 +258,12 @@ const Leaderboard = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Most Popular Garden */}
+                        {/* Most Popular Gardens by Month */}
                         <Card className="shadow-plant">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Star className="h-6 w-6 text-accent" />
-                                    Most Popular Garden
+                                    Most Popular Gardens by Month
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -283,7 +282,8 @@ const Leaderboard = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="font-bold text-accent">{donor.votes} votes</p>
+                                                <p className="font-bold text-accent">{donor.votes * 30} votes</p>
+                                                <p className="text-xs text-muted-foreground">this month</p>
                                             </div>
                                         </div>
                                     );
@@ -345,34 +345,34 @@ const Leaderboard = () => {
                                         {district.name}
                                     </CardTitle>
                                     <CardDescription>
-                                        Top performers in this district
+                                        Top donors in this district
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="space-y-3">
                                         {district.donors
                                             .sort((a, b) => b.totalDonated - a.totalDonated)
-                                            .map((donor, index) => {
-                                                const PlantIcon = getPlantIcon(donor.plantLevel);
-                                                return (
-                                                    <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                                        <div className="flex items-center space-x-3">
-                                                            <div className="flex items-center justify-center w-8 h-8">
-                                                                {getRankIcon(index + 1)}
-                                                            </div>
-                                                            <PlantIcon className={`h-6 w-6 ${district.color}`} />
-                                                            <div>
-                                                                <p className="font-medium">{donor.name}</p>
-                                                                <p className="text-sm text-muted-foreground">{donor.plantType}</p>
-                                                            </div>
+                                            .map((donor, index) => (
+                                                <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                                    <div className="flex items-center space-x-3">
+                                                        <div className="flex items-center justify-center w-8 h-8">
+                                                            {getRankIcon(index + 1)}
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className="font-bold text-plant-growth">${donor.totalDonated}</p>
-                                                            <p className="text-sm text-muted-foreground">{donor.votes} votes</p>
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.name}`} />
+                                                            <AvatarFallback>{donor.name.charAt(0)}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-medium">{donor.name}</p>
+                                                            <p className="text-sm text-muted-foreground">Donor</p>
                                                         </div>
                                                     </div>
-                                                );
-                                            })}
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-plant-growth">${donor.totalDonated}</p>
+                                                        <p className="text-sm text-muted-foreground">donated</p>
+                                                    </div>
+                                                </div>
+                                            ))}
                                     </div>
                                 </CardContent>
                             </Card>
