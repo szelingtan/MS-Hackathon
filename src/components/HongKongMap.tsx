@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+// import { Progress } from "@/components/ui/progress"; // CHANGED: we render a custom bar to overlay "your" portion
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -42,24 +42,18 @@ interface MapInstance {
   remove: () => void;
 }
 
-interface NavigationControl {
-  // MapLibre Navigation Control interface
-  [key: string]: unknown;
-}
+interface NavigationControl { [key: string]: unknown; }
 
 interface MapEvent {
-  features: Feature[];
+  features?: Feature[];
   point: Point;
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
+interface Point { x: number; y: number; }
 
 interface Feature {
   id: string | number;
-  properties: Record<string, string | number>;
+  properties: Record<string, any>;
   geometry: GeoJSONGeometry;
 }
 
@@ -68,20 +62,10 @@ interface GeoJSONGeometry {
   coordinates: number[] | number[][] | number[][][];
 }
 
-interface GeoJSONSource {
-  type: 'geojson';
-  data: GeoJSONData;
-}
+interface GeoJSONSource { type: 'geojson'; data: GeoJSONData; }
+interface MaskSource { type: 'geojson'; data: Feature; }
 
-interface MaskSource {
-  type: 'geojson';
-  data: Feature;
-}
-
-interface GeoJSONData {
-  type: 'FeatureCollection';
-  features: Feature[];
-}
+interface GeoJSONData { type: 'FeatureCollection'; features: Feature[]; }
 
 interface MapLayer {
   id: string;
@@ -90,25 +74,11 @@ interface MapLayer {
   paint: Record<string, unknown>;
 }
 
-interface FeatureTarget {
-  source: string;
-  id: string | number;
-}
+interface FeatureTarget { source: string; id: string | number; }
+interface FeatureState { hover?: boolean; selected?: boolean; }
+interface QueryOptions { layers: string[]; }
 
-interface FeatureState {
-  hover?: boolean;
-  selected?: boolean;
-}
-
-interface QueryOptions {
-  layers: string[];
-}
-
-interface FitBoundsOptions {
-  padding: number;
-  duration: number;
-}
-
+interface FitBoundsOptions { padding: number; duration: number; }
 interface FlyToOptions {
   center: [number, number];
   zoom: number;
@@ -164,7 +134,7 @@ interface DonationProject {
   image: string;
 }
 
-// District name to ID mapping for Firestore
+// District name to ID mapping for Firestore (not used for donations)
 const districtNameToId: { [key: string]: number } = {
   "Hong Kong Island": 1,
   "Kowloon": 2,
@@ -174,7 +144,6 @@ const districtNameToId: { [key: string]: number } = {
 
 // Mapping from map district names to data district names
 const mapDistrictToDataDistrict: { [key: string]: string[] } = {
-  // Map commonly used names to actual district names in the data
   "Central": ["Central & Western"],
   "Central & Western": ["Central & Western"],
   "Wan Chai": ["Wan Chai"],
@@ -194,7 +163,6 @@ const mapDistrictToDataDistrict: { [key: string]: string[] } = {
   "Tsuen Wan": ["Tsuen Wan"],
   "Tuen Mun": ["Tuen Mun"],
   "Yuen Long": ["Yuen Long"],
-  // Fallback for any unmatched districts - show all
   "Unknown District": []
 };
 
@@ -205,6 +173,7 @@ interface SidePanelProps {
   onClearSelection: () => void;
   onDonate: (project: DonationProject) => void;
   panelHeight?: number;
+  myDonations?: Record<number, number>; // NEW
 }
 
 const StoryDetailModal: React.FC<{
@@ -216,16 +185,9 @@ const StoryDetailModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black bg-opacity-50"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-white rounded-lg shadow-xl max-w-2xl max-h-[80vh] overflow-y-auto m-4 w-full">
         <div className="p-6">
-          {/* Header */}
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">{story.title}</h2>
@@ -235,28 +197,18 @@ const StoryDetailModal: React.FC<{
                   {story.district}
                 </span>
                 <span>{story.date}</span>
-                {story.category && (
-                  <Badge variant="secondary">{story.category}</Badge>
-                )}
+                {story.category && <Badge variant="secondary">{story.category}</Badge>}
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
-            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
           </div>
 
-          {/* Image */}
           {story.image && (
             <div className="mb-6">
-              <img 
-                src={story.image} 
-                alt={story.title}
-                className="w-full h-48 object-cover rounded-lg"
-              />
+              <img src={story.image} alt={story.title} className="w-full h-48 object-cover rounded-lg" />
             </div>
           )}
 
-          {/* Content */}
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-2">Story</h3>
@@ -267,50 +219,36 @@ const StoryDetailModal: React.FC<{
 
             <div>
               <h3 className="font-semibold mb-2">Impact</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {story.impact}
-              </p>
+              <p className="text-muted-foreground leading-relaxed">{story.impact}</p>
             </div>
 
-            {/* Additional details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {story.beneficiaries && (
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-accent" />
-                  <span className="text-sm">
-                    <strong>{story.beneficiaries}</strong> people helped
-                  </span>
+                  <span className="text-sm"><strong>{story.beneficiaries}</strong> people helped</span>
                 </div>
               )}
-              
               {story.volunteer && (
                 <div className="flex items-center gap-2">
                   <Heart className="h-4 w-4 text-accent" />
-                  <span className="text-sm">
-                    Volunteer: <strong>{story.volunteer}</strong>
-                  </span>
+                  <span className="text-sm">Volunteer: <strong>{story.volunteer}</strong></span>
                 </div>
               )}
-
               {story.location && (
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-accent" />
-                  <span className="text-sm">
-                    Location: <strong>{story.location}</strong>
-                  </span>
+                  <span className="text-sm">Location: <strong>{story.location}</strong></span>
                 </div>
               )}
             </div>
 
-            {/* Tags */}
             {story.tags && story.tags.length > 0 && (
               <div>
                 <h3 className="font-semibold mb-2">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {story.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
+                    <Badge key={index} variant="outline" className="text-xs">{tag}</Badge>
                   ))}
                 </div>
               </div>
@@ -328,27 +266,22 @@ const SidePanel: React.FC<SidePanelProps> = ({
   projects, 
   panelHeight = 500, 
   onClearSelection,
-  onDonate 
+  onDonate,
+  myDonations // NEW
 }) => {
-  // Add state for story modal
   const [selectedStory, setSelectedStory] = useState<ImpactStory | null>(null);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
-  // Add handler for story click
   const handleStoryClick = (story: ImpactStory) => {
     setSelectedStory(story);
     setIsStoryModalOpen(true);
   };
-
-  const closeStoryModal = () => {
-    setIsStoryModalOpen(false);
-    setSelectedStory(null);
-  };
+  const closeStoryModal = () => { setIsStoryModalOpen(false); setSelectedStory(null); };
 
   const filteredStories = selectedDistrict 
     ? (() => {
         const mappedDistricts = mapDistrictToDataDistrict[selectedDistrict] || [selectedDistrict];
-        if (mappedDistricts.length === 0) return stories; // Show all if no mapping
+        if (mappedDistricts.length === 0) return stories;
         return stories.filter(story => mappedDistricts.includes(story.district));
       })()
     : stories;
@@ -356,15 +289,10 @@ const SidePanel: React.FC<SidePanelProps> = ({
   const filteredProjects = selectedDistrict
     ? (() => {
         const mappedDistricts = mapDistrictToDataDistrict[selectedDistrict] || [selectedDistrict];
-        if (mappedDistricts.length === 0) return projects; // Show all if no mapping
+        if (mappedDistricts.length === 0) return projects;
         return projects.filter(project => mappedDistricts.includes(project.district));
       })()
     : projects;
-
-  console.log('Selected District:', selectedDistrict);
-  console.log('Mapped Districts:', mapDistrictToDataDistrict[selectedDistrict || '']);
-  console.log('Filtered Stories:', filteredStories.length);
-  console.log('Filtered Projects:', filteredProjects.length);
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -375,13 +303,8 @@ const SidePanel: React.FC<SidePanelProps> = ({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-HK', {
-      style: 'currency',
-      currency: 'HKD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-HK', { style: 'currency', currency: 'HKD', minimumFractionDigits: 0 }).format(amount);
 
   return (
     <>
@@ -406,125 +329,140 @@ const SidePanel: React.FC<SidePanelProps> = ({
               <TabsTrigger value="stories">Stories</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
             </TabsList>
-          <TabsContent value="stories" className="mt-4">
-            {filteredStories.length > 0 ? (
-              <div className="space-y-4">
-                {filteredStories.map((story) => (
-                  <Card 
-                    key={story.id} 
-                    className="border-l-4 border-l-plant-growth cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => handleStoryClick(story)}
-                  >
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
-                      <p className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-3">
-                        {story.description}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{story.district}</span>
-                        <span>{story.date}</span>
-                      </div>
-                      <div className="mt-2 text-xs text-accent hover:text-accent/80">
-                        Click to read full story →
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Stories Yet</h3>
-                <p className="text-muted-foreground">
-                  No impact stories available {selectedDistrict ? `for ${selectedDistrict}` : ''} yet.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-          <TabsContent value="projects" className="mt-4">
-            {filteredProjects.length > 0 ? (
-              <div className="space-y-4">
-                {filteredProjects.map((project) => {
-                  const progress = (project.raised / project.goal) * 100;
-                  return (
-                    <Card key={project.id} className="border-l-4 border-l-accent">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
-                            <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
-                              <Clock className="h-3 w-3 mr-1" />
-                              {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
-                            </Badge>
-                          </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {project.category}
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                          {project.description}
-                        </p>
 
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Progress</span>
-                            <span className="font-medium">{progress.toFixed(0)}% funded</span>
-                          </div>
-                          <Progress value={progress} className="h-2" />
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-1 text-sm">
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium text-plant-growth">
-                                  {formatCurrency(project.raised)}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  / {formatCurrency(project.goal)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Users className="h-4 w-4" />
-                                <span>{project.supporters} supporters</span>
-                              </div>
-                            </div>
-                            <Button 
-                              size="sm" 
-                              variant="nature" 
-                              className="whitespace-nowrap"
-                              onClick={() => onDonate(project)}
-                            >
-                              <Heart className="h-3 w-3 mr-1" />
-                              Donate
-                            </Button>
-                          </div>
+            <TabsContent value="stories" className="mt-4">
+              {filteredStories.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredStories.map((story) => (
+                    <Card 
+                      key={story.id} 
+                      className="border-l-4 border-l-plant-growth cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => handleStoryClick(story)}
+                    >
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-sm text-foreground mb-2">{story.title}</h4>
+                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed line-clamp-3">
+                          {story.description}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{story.district}</span>
+                          <span>{story.date}</span>
                         </div>
+                        <div className="mt-2 text-xs text-accent hover:text-accent/80">Click to read full story →</div>
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Active Projects</h3>
-                <p className="text-muted-foreground">
-                  No donation projects available {selectedDistrict ? `for ${selectedDistrict}` : ''} at the moment.
-                </p>
-              </div>
-            )}
-          </TabsContent>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Stories Yet</h3>
+                  <p className="text-muted-foreground">
+                    No impact stories available {selectedDistrict ? `for ${selectedDistrict}` : ''} yet.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="projects" className="mt-4">
+              {filteredProjects.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredProjects.map((project) => {
+                    const myAmount = myDonations?.[project.id] || 0; // NEW
+                    const totalPct = Math.min((project.raised / project.goal) * 100, 100);
+                    const myPct = Math.min((myAmount / project.goal) * 100, 100);
+                    return (
+                      <Card key={project.id} className="border-l-4 border-l-accent">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm text-foreground mb-1">{project.title}</h4>
+                              <Badge className={`text-xs ${getUrgencyColor(project.urgency)}`}>
+                                <Clock className="h-3 w-3 mr-1" />
+                                {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
+                              </Badge>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">{project.category}</Badge>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{project.description}</p>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">Progress</span>
+                              <span className="font-medium">{Math.round(totalPct)}% funded</span>
+                            </div>
+
+                            {/* Progress bar with overlay for "your" donation */}
+                            <div className="relative w-full h-2 rounded-md bg-secondary/40 overflow-hidden">
+                              <div
+                                className="absolute inset-y-0 left-0 bg-primary/70"
+                                style={{ width: `${totalPct}%` }}
+                              />
+                              {myAmount > 0 && (
+                                <div
+                                  className="absolute inset-y-0 left-0 bg-emerald-500/80"
+                                  style={{ width: `${myPct}%`, borderRight: '2px solid white' }}
+                                  title={`Your donations: ${formatCurrency(myAmount)}`}
+                                />
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1 text-sm">
+                                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                  <span className="font-medium text-plant-growth">
+                                    {formatCurrency(project.raised)}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    / {formatCurrency(project.goal)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="inline-block w-3 h-2 rounded bg-primary/70" /> total
+                                  </span>
+                                  <span className="inline-flex items-center gap-1">
+                                    <span className="inline-block w-3 h-2 rounded bg-emerald-500/80" /> your part
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <Users className="h-4 w-4" />
+                                  <span>{project.supporters} supporters</span>
+                                </div>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="nature" 
+                                className="whitespace-nowrap"
+                                onClick={() => onDonate(project)}
+                              >
+                                <Heart className="h-3 w-3 mr-1" />
+                                Donate
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Active Projects</h3>
+                  <p className="text-muted-foreground">
+                    No donation projects available {selectedDistrict ? `for ${selectedDistrict}` : ''} at the moment.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
 
-      {/* Story Detail Modal */}
-      <StoryDetailModal
-        story={selectedStory}
-        isOpen={isStoryModalOpen}
-        onClose={closeStoryModal}
-      />
+      <StoryDetailModal story={selectedStory} isOpen={isStoryModalOpen} onClose={closeStoryModal} />
     </>
   );
 };
@@ -539,12 +477,27 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
   const [stories, setStories] = useState<ImpactStory[]>([]);
   const [projects, setProjects] = useState<DonationProject[]>([]);
-  
-  // Donation dialog state (removed - now handled by parent)
+
+  // NEW: track "your" donations for overlay (local only)
+  const [myDonations, setMyDonations] = useState<Record<number, number>>({}); // projectId -> amount
+
+  // Donation dialog state (kept minimal)
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   
-  // Get auth hook for donations
-  const { processDonation, user } = useAuth();
+  const { user } = useAuth(); // CHANGED: do not call processDonation here (donations aren't via Firestore)
+
+  // NEW helpers: local storage for your own donation overlay
+  const loadMyDonations = () => {
+    try {
+      const raw = localStorage.getItem('hk_game_my_donations');
+      return raw ? (JSON.parse(raw) as Record<number, number>) : {};
+    } catch { return {}; }
+  };
+  const saveMyDonations = (obj: Record<number, number>) => {
+    try { localStorage.setItem('hk_game_my_donations', JSON.stringify(obj)); } catch {}
+  };
+
+  useEffect(() => { setMyDonations(loadMyDonations()); }, []);
 
   // Load stories and projects data
   useEffect(() => {
@@ -558,26 +511,53 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
         if (storiesRes.ok) {
           const storiesData = await storiesRes.json();
           setStories(storiesData);
-          console.log('Loaded stories:', storiesData);
-          console.log('Unique story districts:', [...new Set(storiesData.map((s: ImpactStory) => s.district))]);
         }
-        
         if (projectsRes.ok) {
           const projectsData = await projectsRes.json();
-          setProjects(projectsData);
-          console.log('Loaded projects:', projectsData);
-          console.log('Unique project districts:', [...new Set(projectsData.map((p: DonationProject) => p.district))]);
+          
+          // Load user donations and combine with project data
+          const userDonations = loadMyDonations();
+          
+          // Add user donations to the project totals
+          const updatedProjects = projectsData.map(project => {
+            const userAmount = userDonations[project.id] || 0;
+            return {
+              ...project,
+              userDonation: userAmount, // Track user donation separately
+              raised: project.raised + userAmount // Add user donation to total raised
+            };
+          });
+          
+          setProjects(updatedProjects);
+          setMyDonations(userDonations);
         }
       } catch (error) {
         console.error('Error loading data:', error);
       }
     };
-    
     loadData();
   }, []);
 
+  useEffect(() => {
+    const handleDonationEvent = (e: Event) => {
+      const { projectId, amount } = (e as CustomEvent).detail;
+      if (projectId && amount) {
+        applyDonationLocal(projectId, amount);
+      }
+    };
+    
+    const mapElement = mapContainer.current;
+    if (mapElement) {
+      mapElement.setAttribute('data-hongkong-map', '');
+      mapElement.addEventListener('donation-made', handleDonationEvent);
+      return () => {
+        mapElement.removeEventListener('donation-made', handleDonationEvent);
+      };
+    }
+  }, []);
+
+  // CHANGED: keep slight zoom + mask effect from first code
   const handleDistrictClick = (districtName: string) => {
-    console.log('District clicked:', districtName);
     setSelectedDistrict(districtName);
     setSelectedRegion(districtName);
   };
@@ -589,19 +569,94 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
       map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
       selectedFeatureId.current = null;
     }
+    // NEW: reset mask + camera
+    if (map.current) {
+      map.current.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.3);
+      map.current.flyTo({
+        center: [114.1694, 22.3193],
+        zoom: 9.6,
+        pitch: 50,
+        bearing: -10,
+        duration: 1000
+      });
+    }
   };
 
-  const handleProjectDonate = (project: DonationProject) => {
-    if (onProjectDonate) {
-      onProjectDonate(project);
+  // NEW: apply donation locally + try to persist via simple API (server should update the JSON files)
+  const applyDonationLocal = (projectId: number, amount: number) => {
+    if (!isFinite(amount) || amount <= 0) return;
+
+    setProjects(prev =>
+      prev.map(p => p.id === projectId
+        ? { ...p, raised: p.raised + amount, supporters: p.supporters + 1 }
+        : p
+      )
+    );
+
+    setMyDonations(prev => {
+      const next = { ...prev, [projectId]: (prev[projectId] || 0) + amount };
+      saveMyDonations(next);
+      return next;
+    });
+  };
+
+  // NEW: attempt server persistence; no-op if endpoint is absent
+  const persistDonation = async (projectId: number, amount: number) => {
+    try {
+      // 1) append to donations log JSON
+      await fetch('/hk-game/api/donations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          amount,
+          userId: user?.user_id || 'anon',
+          ts: Date.now()
+        })
+      }).catch(() => { /* ignore network/API absence */ });
+
+      // 2) update project raised/supporters in projects JSON
+      await fetch('/hk-game/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          delta: amount,
+          supporterDelta: 1
+        })
+      }).catch(() => {});
+
+      if (onDonationUpdate) onDonationUpdate();
+    } catch (e) {
+      console.warn('Persist donation failed; kept local only.', e);
     }
+  };
+
+  const handleProjectDonate = async (project: DonationProject) => {
+    if (onProjectDonate) {
+      // Just delegate to parent component - don't show any prompts
+      onProjectDonate(project);
+      // Parent will handle the dialog and updating all state
+      return;
+    }
+    
+    // This is the fallback if no parent handler (only for standalone testing)
+    const input = window.prompt(`Donate to "${project.title}" (HKD):`, '100');
+    if (!input) return;
+    const amount = Number(input);
+    if (!isFinite(amount) || amount <= 0) {
+      toast.error('Please enter a valid amount.');
+      return;
+    }
+    applyDonationLocal(project.id, amount);
+    persistDonation(project.id, amount);
+    toast.success('Thank you for your donation!');
   };
 
   // Initialize map scripts and map instance once
   useEffect(() => {
     if (mapInitialized.current) return;
     
-    // Handle map initialization and district data
     const initializeMap = async () => {
       if (!mapContainer.current || map.current) return;
 
@@ -629,7 +684,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
 
           map.current!.addSource('hk', { type: 'geojson', data: geojson });
 
-          // Add mask for unselected areas
+          // mask for outside HK
           const maskFeature = window.turf.mask(geojson);
           map.current!.addSource('outside-mask', { type: 'geojson', data: maskFeature });
 
@@ -637,13 +692,9 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
             id: 'outside-mask-fill',
             type: 'fill',
             source: 'outside-mask',
-            paint: { 
-              'fill-color': '#000', 
-              'fill-opacity': 0.3
-            }
+            paint: { 'fill-color': '#000', 'fill-opacity': 0.3 }
           });
 
-          // Add district fills for interaction
           map.current!.addLayer({
             id: 'hk-fill',
             type: 'fill',
@@ -659,7 +710,6 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
             }
           });
 
-          // Add district outlines
           map.current!.addLayer({
             id: 'hk-outline',
             type: 'line',
@@ -680,68 +730,76 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
             }
           });
 
-          // Setup map interactions
-          const setupMapInteractions = () => {
-            let hoverId: string | number | null = null;
+          // interactions (CHANGED + NEW zoom/mask)
+          let hoverId: string | number | null = null;
 
-            map.current!.on('mousemove', 'hk-fill', (e: MapEvent) => {
-              if (e.features && e.features.length > 0) {
-                const feature = e.features[0] as Feature;
-                const newHoverId = feature.id as string | number;
-                
-                if (hoverId && hoverId !== newHoverId) {
-                  map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
-                }
-                
-                if (newHoverId !== hoverId) {
-                  hoverId = newHoverId;
-                  map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: true });
-                }
-              }
-            });
-
-            map.current!.on('mouseleave', 'hk-fill', () => {
-              if (hoverId !== null) {
+          map.current!.on('mousemove', 'hk-fill', (e: MapEvent) => {
+            if (e.features && e.features.length > 0) {
+              const feature = e.features[0] as Feature;
+              const newHoverId = feature.id as string | number;
+              if (hoverId && hoverId !== newHoverId) {
                 map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
-                hoverId = null;
               }
-            });
-
-            map.current!.on('click', 'hk-fill', (e: MapEvent) => {
-              if (e.features && e.features.length > 0) {
-                const feature = e.features[0] as Feature;
-                console.log('Feature properties:', feature.properties);
-                
-                // Try multiple possible property names for district
-                const districtName = 
-                  feature.properties.ENAME || 
-                  feature.properties.Name_en || 
-                  feature.properties.NAME_EN ||
-                  feature.properties.DISTRICT ||
-                  feature.properties.District ||
-                  feature.properties.name ||
-                  feature.properties.NAME ||
-                  feature.properties.CNAME ||
-                  'Unknown District';
-                
-                console.log('Extracted district name:', districtName);
-                
-                // Handle district selection
-                handleDistrictClick(String(districtName));
-                
-                // Clear previous selection
-                if (selectedFeatureId.current) {
-                  map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
-                }
-                
-                // Set new selection
-                selectedFeatureId.current = feature.id as string | number;
-                map.current!.setFeatureState({ source: 'hk', id: feature.id }, { selected: true });
+              if (newHoverId !== hoverId) {
+                hoverId = newHoverId;
+                map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: true });
               }
-            });
-          };
+              map.current!.getCanvas().style.cursor = 'pointer'; // NEW
+            }
+          });
 
-          setupMapInteractions();
+          map.current!.on('mouseleave', 'hk-fill', () => {
+            if (hoverId !== null) {
+              map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
+              hoverId = null;
+            }
+            map.current!.getCanvas().style.cursor = ''; // NEW
+          });
+
+          map.current!.on('click', 'hk-fill', (e: MapEvent) => {
+            if (e.features && e.features.length > 0) {
+              const feature = e.features[0] as Feature;
+
+              const districtName = 
+                feature.properties.ENAME || 
+                feature.properties.Name_en || 
+                feature.properties.NAME_EN ||
+                feature.properties.DISTRICT ||
+                feature.properties.District ||
+                feature.properties.name ||
+                feature.properties.NAME ||
+                feature.properties.CNAME ||
+                'Unknown District';
+              
+              handleDistrictClick(String(districtName));
+              
+              // clear previous selection
+              if (selectedFeatureId.current) {
+                map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
+              }
+              // new selection
+              selectedFeatureId.current = feature.id as string | number;
+              map.current!.setFeatureState({ source: 'hk', id: feature.id }, { selected: true });
+
+              // NEW: slight zoom into the clicked district + dim outside
+              try {
+                const bbox = window.turf.bbox(feature);
+                map.current!.fitBounds(bbox, { padding: 50, duration: 1000 });
+                map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.1);
+              } catch (err) {
+                console.warn('fitBounds failed, falling back to no zoom.', err);
+              }
+            }
+          });
+
+          // NEW: click on empty map clears selection (like first code)
+          map.current!.on('click', (e: MapEvent) => {
+            const feats = map.current!.queryRenderedFeatures(e.point, { layers: ['hk-fill'] });
+            if (feats.length === 0 && selectedFeatureId.current !== null) {
+              handleClearSelection();
+            }
+          });
+
         } catch (error) {
           console.error('Error loading Hong Kong data:', error);
         }
@@ -749,30 +807,23 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
     };
 
     const loadScripts = async () => {
-      // Load MapLibre GL CSS
       const cssLink = document.createElement('link');
       cssLink.href = 'https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css';
       cssLink.rel = 'stylesheet';
       document.head.appendChild(cssLink);
 
-      // Load MapLibre GL JS
       if (!window.maplibregl) {
         const maplibreScript = document.createElement('script');
         maplibreScript.src = 'https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js';
         document.head.appendChild(maplibreScript);
-        await new Promise<void>((resolve) => { 
-          maplibreScript.onload = () => resolve(); 
-        });
+        await new Promise<void>((resolve) => { maplibreScript.onload = () => resolve(); });
       }
 
-      // Load Turf.js
       if (!window.turf) {
         const turfScript = document.createElement('script');
         turfScript.src = 'https://unpkg.com/@turf/turf@6/turf.min.js';
         document.head.appendChild(turfScript);
-        await new Promise<void>((resolve) => { 
-          turfScript.onload = () => resolve(); 
-        });
+        await new Promise<void>((resolve) => { turfScript.onload = () => resolve(); });
       }
 
       mapInitialized.current = true;
@@ -782,16 +833,13 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
     loadScripts();
     
     return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
+      if (map.current) { map.current.remove(); map.current = null; }
     };
   }, []);
 
   return (
     <div className="flex gap-4 h-full">
-      {/* Map Container */}
+      {/* Map */}
       <div className="flex-1 relative">
         <div 
           ref={mapContainer} 
@@ -809,11 +857,11 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
           onClearSelection={handleClearSelection}
           onDonate={handleProjectDonate}
           panelHeight={height}
+          myDonations={myDonations} // NEW
         />
       </div>
     </div>
   );
 };
-
 
 export default HongKongMap;

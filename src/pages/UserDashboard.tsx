@@ -85,16 +85,17 @@ const UserDashboard = () => {
     try {
       // If we have a specific project, use its details for Firestore
       if (currentProject) {
-        // Use project ID as both target_district_id and project_id
-        const result = await processDonation(
-          donationAmount, 
-          currentProject.id, // Use project ID as target_district_id
-          currentProject.id, // Use project ID as project_id
-          currentProject.title
-        );
-
-        // Show success message with the water drops earned from processDonation
-        toast.success(`Thank you for donating $${donationAmount} to ${currentProject.title}! You received ${result.waterDropsEarned} water drops! 💧`);
+      // This will tell the map component about the donation
+      const hongKongMapElement = document.querySelector('[data-hongkong-map]');
+        if (hongKongMapElement) {
+          // Use a custom event to communicate with the map component
+          hongKongMapElement.dispatchEvent(new CustomEvent('donation-made', {
+            detail: {
+              projectId: currentProject.id,
+              amount: donationAmount
+            }
+          }));
+        }
       } else {
         // General donation without specific project
         const result = await processDonation(donationAmount, 1);
@@ -139,51 +140,60 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-gradient-sky">
       {/* Header */}
       <header className="border-b border-border/30 bg-card/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Sprout className="h-8 w-8 text-plant-growth animate-leaf-sway" />
-            <h1 className="text-2xl font-bold text-primary">Reach Together</h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-4">
-              <Badge variant="secondary" className="flex items-center gap-2">
-                <Droplets className="h-4 w-4" />
-                {user.water_amount} drops
-              </Badge>
-              <Badge variant="outline" className="flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                ${user.donated_amount} donated
-              </Badge>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-2">
+              <Sprout className="h-8 w-8 text-plant-growth animate-leaf-sway" />
+              <h1 className="text-xl sm:text-2xl font-bold text-primary">Reach Together</h1>
             </div>
-            <Badge variant="secondary">
-              Welcome {user.name}!
-            </Badge>
-            <Button variant="outline" size="sm" onClick={goToProfile}>
-              Profile
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  <Droplets className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">{user.water_amount} drops</span>
+                  <span className="xs:hidden">{user.water_amount}</span>
+                </Badge>
+                <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                  <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">${user.donated_amount} donated</span>
+                  <span className="xs:hidden">${user.donated_amount}</span>
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
+                  Welcome {user.name}!
+                </Badge>
+                <Button variant="outline" size="sm" onClick={goToProfile} className="text-xs px-2">
+                  Profile
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs px-2">
+                  <LogOut className="h-3 w-3 mr-1" />
+                  <span className="hidden sm:inline">Logout</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto">
-            <TabsTrigger value="game" className="flex items-center gap-2">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto h-auto p-1">
+            <TabsTrigger value="game" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Sprout className="h-4 w-4" />
-              My Garden
+              <span className="hidden sm:inline">My Garden</span>
+              <span className="sm:hidden">Garden</span>
             </TabsTrigger>
-            <TabsTrigger value="feed" className="flex items-center gap-2">
+            <TabsTrigger value="feed" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <MapPin className="h-4 w-4" />
-              Projects Map
+              <span className="hidden sm:inline">Projects Map</span>
+              <span className="sm:hidden">Map</span>
             </TabsTrigger>
-            <TabsTrigger value="leaderboard" className="flex items-center gap-2">
+            <TabsTrigger value="leaderboard" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Trophy className="h-4 w-4" />
-              Leaderboard
+              <span className="hidden sm:inline">Leaderboard</span>
+              <span className="sm:hidden">Leaders</span>
             </TabsTrigger>
           </TabsList>
 
@@ -191,21 +201,21 @@ const UserDashboard = () => {
             <PlantGame userId={user.user_id} />
           </TabsContent>
 
-          <TabsContent value="feed" className="space-y-6">
+          <TabsContent value="feed" className="space-y-4 sm:space-y-6">
             <Card className="shadow-soft">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-accent" />
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
                   Hong Kong Districts
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Explore the districts where your donations make an impact
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="w-full h-[600px]">
+              <CardContent className="p-2 sm:p-6">
+                <div className="w-full h-[400px] sm:h-[600px] overflow-hidden rounded-lg">
                   <HongKongMap 
-                    height={600} 
+                    height={window.innerWidth < 640 ? 400 : 600}
                     onDonationUpdate={handleDonationUpdate} 
                     onProjectDonate={handleProjectDonate}
                   />
