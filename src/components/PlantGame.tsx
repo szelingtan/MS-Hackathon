@@ -262,6 +262,22 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     updatePlantAccessories(plantId, newAccessories);
   };
 
+  // Debug wrapper for removePlant to see if it's being called
+  const handleRemovePlant = (plantId: string) => {
+    console.log('Delete button clicked for plant:', plantId);
+    console.log('Current plants:', gardenLayout.plants.map(p => p.id));
+    removePlant(plantId);
+    console.log('After removal, plants:', gardenLayout.plants.filter(p => p.id !== plantId).map(p => p.id));
+  };
+
+  // Debug wrapper for removeAccessory to see if it's being called
+  const handleRemoveAccessory = (accessoryId: string) => {
+    console.log('Delete button clicked for accessory:', accessoryId);
+    console.log('Current accessories:', gardenLayout.accessories.map(a => a.id));
+    removeAccessory(accessoryId);
+    console.log('After removal, accessories:', gardenLayout.accessories.filter(a => a.id !== accessoryId).map(a => a.id));
+  };
+
 
 
   return (
@@ -371,13 +387,13 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                 selectedAccessory={selectedAccessory}
                 placementMode={placementMode}
                 onPlantMove={updatePlantPosition}
-                onPlantRemove={removePlant}
+                onPlantRemove={handleRemovePlant}
                 onPlantConfirmPlacement={confirmPlantPlacement}
                 onPlantClickForAccessory={handlePlantClickForAccessory}
                 onRemoveAccessoryFromPlant={removeAccessoryFromPlant}
                 onAddPlant={addPlant}
                 onAccessoryMove={updateAccessoryPosition}
-                onAccessoryRemove={removeAccessory}
+                onAccessoryRemove={handleRemoveAccessory}
                 onAccessoryConfirmPlacement={confirmAccessoryPlacement}
                 onAddAccessory={addAccessory}
               />
