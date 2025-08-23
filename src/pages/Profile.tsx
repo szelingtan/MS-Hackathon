@@ -134,12 +134,22 @@ const Profile = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="progress">My Progress</TabsTrigger>
-            <TabsTrigger value="projects">My Projects</TabsTrigger>
-            <TabsTrigger value="badges">Badges</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="w-full h-auto flex flex-wrap gap-2">
+            <TabsTrigger value="overview" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="progress" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
+              My Progress
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
+              My Projects
+            </TabsTrigger>
+            <TabsTrigger value="badges" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
+              Badges
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="basis-1/2 sm:basis-auto flex-1 sm:flex-none px-3 py-2 text-sm">
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
