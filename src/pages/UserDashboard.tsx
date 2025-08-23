@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import ImpactFeed from "@/components/ImpactFeed";
