@@ -606,7 +606,7 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                 {/* Earning Opportunities */}
                 <div className="mt-8">
                   <h4 className="text-md font-semibold mb-4 flex items-center gap-2">
-                    💰 Earning Opportunities
+                    💧 Earning Opportunities
                   </h4>
                   <div className="space-y-3">
                     {[
