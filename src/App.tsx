@@ -10,6 +10,7 @@ import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
+import ProjectDetails from "./pages/project/[id]/page";
 
 const queryClient = new QueryClient();
 
@@ -95,6 +96,14 @@ const App = () => (
             element={
               <ProtectedRoute requiredRole="donor">
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/project/:id" 
+            element={
+              <ProtectedRoute requiredRole="donor">
+                <ProjectDetails />
               </ProtectedRoute>
             } 
           />

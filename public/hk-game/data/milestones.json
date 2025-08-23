@@ -1,0 +1,256 @@
+[
+  {
+    "projectId": 1,
+    "district": "Central & Western",
+    "title": "Central Learning Hub Expansion",
+    "milestones": [
+      {
+        "id": "mile-1-1",
+        "title": "Center Construction Completed",
+        "description": "Renovation and setup of classrooms and facilities finalized.",
+        "impact": "Facility ready for use",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-15"
+      },
+      {
+        "id": "mile-1-2",
+        "title": "First Batch of Students Enrolled",
+        "description": "Fifty students began attending after-school sessions.",
+        "impact": "50 students supported",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-21"
+      }
+    ]
+  },
+  {
+    "projectId": 2,
+    "district": "Wan Chai",
+    "title": "Digital Skills Training Program",
+    "milestones": [
+      {
+        "id": "mile-2-1",
+        "title": "Laptops Distributed",
+        "description": "20 refurbished laptops were distributed to students.",
+        "impact": "20 students equipped",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-01"
+      },
+      {
+        "id": "mile-2-2",
+        "title": "Coding Workshops Launched",
+        "description": "Weekend coding classes launched in the community center.",
+        "impact": "Skills training in progress",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-15"
+      }
+    ]
+  },
+  {
+    "projectId": 3,
+    "district": "Eastern",
+    "title": "Healthy Meals Initiative",
+    "milestones": [
+      {
+        "id": "mile-3-1",
+        "title": "Meal Plan Finalized",
+        "description": "Balanced meal menu approved by nutritionist.",
+        "impact": "Improved meal quality",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-10"
+      },
+      {
+        "id": "mile-3-2",
+        "title": "Meal Service Started",
+        "description": "Program started delivering breakfast and lunch to 40 students.",
+        "impact": "40 students fed daily",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-20"
+      }
+    ]
+  },
+  {
+    "projectId": 4,
+    "district": "Southern",
+    "title": "Science Laboratory Equipment",
+    "milestones": [
+      {
+        "id": "mile-4-1",
+        "title": "Lab Equipment Purchased",
+        "description": "Modern lab tools and safety equipment acquired.",
+        "impact": "Lab ready for experiments",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-30"
+      },
+      {
+        "id": "mile-4-2",
+        "title": "First Science Session Held",
+        "description": "Students conducted first hands-on science experiment.",
+        "impact": "STEM engagement increased",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-18"
+      }
+    ]
+  },
+  {
+    "projectId": 5,
+    "district": "Yau Tsim Mong",
+    "title": "English Language Support",
+    "milestones": [
+      {
+        "id": "mile-5-1",
+        "title": "Tutors Hired",
+        "description": "Three native English-speaking tutors joined the program.",
+        "impact": "Tutoring services started",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-05"
+      },
+      {
+        "id": "mile-5-2",
+        "title": "Interactive Materials Distributed",
+        "description": "Language learning kits distributed to 60 students.",
+        "impact": "Enhanced student engagement",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-19"
+      }
+    ]
+  },
+  {
+    "projectId": 6,
+    "district": "Sham Shui Po",
+    "title": "Computer Literacy Program",
+    "milestones": [
+      {
+        "id": "mile-6-1",
+        "title": "Computers Delivered",
+        "description": "25 refurbished computers installed at the learning center.",
+        "impact": "Tech access improved",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-25"
+      },
+      {
+        "id": "mile-6-2",
+        "title": "IT Training Began",
+        "description": "Weekly IT classes started with focus on basic skills.",
+        "impact": "Digital skills development underway",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-14"
+      }
+    ]
+  },
+  {
+    "projectId": 7,
+    "district": "Kowloon City",
+    "title": "Creative Arts Studio",
+    "milestones": [
+      {
+        "id": "mile-7-1",
+        "title": "Studio Space Renovated",
+        "description": "Renovation completed with improved lighting and acoustics.",
+        "impact": "Creative space opened",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-22"
+      },
+      {
+        "id": "mile-7-2",
+        "title": "First Art Class Conducted",
+        "description": "Students participated in their first drawing and music sessions.",
+        "impact": "Arts engagement enhanced",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-17"
+      }
+    ]
+  },
+  {
+    "projectId": 8,
+    "district": "Wong Tai Sin",
+    "title": "Mathematics Excellence Program",
+    "milestones": [
+      {
+        "id": "mile-8-1",
+        "title": "Tutors Onboarded",
+        "description": "Experienced math tutors joined the program.",
+        "impact": "Tutoring capacity expanded",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-02"
+      },
+      {
+        "id": "mile-8-2",
+        "title": "First Practice Session Held",
+        "description": "Students began practicing for upcoming math competitions.",
+        "impact": "Academic excellence supported",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-20"
+      }
+    ]
+  },
+  {
+    "projectId": 9,
+    "district": "Kwun Tong",
+    "title": "Sports and Recreation Center",
+    "milestones": [
+      {
+        "id": "mile-9-1",
+        "title": "Sports Equipment Installed",
+        "description": "New gear and safety equipment set up in the center.",
+        "impact": "Recreational access enhanced",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-28"
+      },
+      {
+        "id": "mile-9-2",
+        "title": "Coaching Sessions Started",
+        "description": "Certified coaches began weekly training programs.",
+        "impact": "Youth fitness promoted",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-21"
+      }
+    ]
+  },
+  {
+    "projectId": 10,
+    "district": "Tsuen Wan",
+    "title": "Mobile Library Project",
+    "milestones": [
+      {
+        "id": "mile-10-1",
+        "title": "Library Van Purchased",
+        "description": "Mobile library vehicle acquired and equipped with books.",
+        "impact": "Ready for outreach",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-07-31"
+      },
+      {
+        "id": "mile-10-2",
+        "title": "First Community Visit",
+        "description": "Mobile library visited 2 rural schools.",
+        "impact": "Books brought to remote learners",
+        "image": "/api/placeholder/300/200",
+        "date": "2025-08-20"
+      }
+    ]
+  },
+  {
+    "projectId": 11,
+    "district": "Tuen Mun",
+    "title": "Environmental Education Program",
+    "milestones": []
+  },
+  {
+    "projectId": 12,
+    "district": "Yuen Long",
+    "title": "Rural School Transportation",
+    "milestones": []
+  },
+  {
+    "projectId": 13,
+    "district": "North",
+    "title": "Special Needs Support Center",
+    "milestones": []
+  },
+  {
+    "projectId": 14,
+    "district": "Tai Po",
+    "title": "STEM Innovation Lab",
+    "milestones": []
+  }
+]

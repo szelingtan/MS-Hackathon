@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 // import { Progress } from "@/components/ui/progress"; // CHANGED: we render a custom bar to overlay "your" portion
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter, Droplets } from "lucide-react";
+import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter, Droplets, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 
 // MapLibre GL and Turf types
 interface MaplibreGL {
@@ -341,6 +342,12 @@ const SidePanel: React.FC<SidePanelProps> = ({
   };
   const closeStoryModal = () => { setIsStoryModalOpen(false); setSelectedStory(null); };
 
+  const navigate = useNavigate();
+  const viewDetails = (id: number) => {
+    navigate(`/project/${id}`);
+  };
+
+
   const filteredStories = selectedDistrict 
     ? (() => {
         const mappedDistricts = mapDistrictToDataDistrict[selectedDistrict] || [selectedDistrict];
@@ -444,6 +451,9 @@ const SidePanel: React.FC<SidePanelProps> = ({
                                 <Clock className="h-3 w-3 mr-1" />
                                 {project.urgency.charAt(0).toUpperCase() + project.urgency.slice(1)} Priority
                               </Badge>
+                              <button onClick={() => viewDetails(project.id)}>
+                                <span><ExternalLink/>View Details</span>
+                              </button>
                             </div>
                             <Badge variant="secondary" className="text-xs">{project.category}</Badge>
                           </div>
