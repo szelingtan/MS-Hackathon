@@ -105,6 +105,33 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* Impact Summary */}
+      <Card className="shadow-soft bg-gradient-to-r from-green-100 to-blue-100">
+        <CardHeader>
+          <CardTitle className="text-green-800">Your Impact Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-700">65</div>
+              <p className="text-sm text-green-600">Students Helped</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-700">2</div>
+              <p className="text-sm text-blue-600">Schools Supported</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-700">8</div>
+              <p className="text-sm text-purple-600">People Inspired</p>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-700">$200</div>
+              <p className="text-sm text-orange-600">Additional Funds Raised</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
