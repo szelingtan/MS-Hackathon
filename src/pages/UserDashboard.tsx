@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Droplets, Heart, LogOut, MapPin, Sprout, Trophy, Users } from "lucide-react";
 import ImpactFeed from "@/components/ImpactFeed";
@@ -48,6 +48,33 @@ const UserDashboard = () => {
   const [localWaterAmount, setLocalWaterAmount] = useState(user?.water_amount || 0);
   
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle tab query parameter from URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get('tab');
+    
+    // Valid tab values: game, leaderboard, feed
+    const validTabs = ['game', 'leaderboard', 'feed'];
+    
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
+
+  // Extract district parameter from URL for HongKongMap
+  const getSelectedDistrictFromURL = () => {
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get('district');
+  };
+
+  // Extract default tab for HongKongMap side panel based on URL parameters
+  const getDefaultMapTab = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const fromProject = searchParams.get('fromProject'); // We'll add this parameter
+    return fromProject === 'true' ? 'projects' : 'stories';
+  };
 
   // Update local water amount when user changes
   useEffect(() => {
@@ -344,6 +371,8 @@ const UserDashboard = () => {
                     height={window.innerWidth < 640 ? 300 : 600}
                     onDonationUpdate={handleDonationUpdate} 
                     onProjectDonate={handleProjectDonate}
+                    initialSelectedDistrict={getSelectedDistrictFromURL()}
+                    defaultSidePanelTab={getDefaultMapTab()}
                   />
                 </div>
               </CardContent>

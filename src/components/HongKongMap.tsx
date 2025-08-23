@@ -104,6 +104,8 @@ interface HongKongMapProps {
   height?: number;
   onDonationUpdate?: () => void;
   onProjectDonate?: (project: DonationProject) => void;
+  initialSelectedDistrict?: string | null; // New prop for setting initial district selection
+  defaultSidePanelTab?: 'stories' | 'projects'; // New prop for setting default side panel tab
 }
 
 interface ImpactStory {
@@ -177,6 +179,7 @@ interface SidePanelProps {
   onDonate: (project: DonationProject) => void;
   panelHeight?: number;
   myDonations?: Record<number, number>; // NEW
+  defaultTab?: 'stories' | 'projects'; // New prop for setting default tab
 }
 
 const StoryDetailModal: React.FC<{
@@ -332,7 +335,8 @@ const SidePanel: React.FC<SidePanelProps> = ({
   panelHeight = 500, 
   onClearSelection,
   onDonate,
-  myDonations // NEW
+  myDonations, // NEW
+  defaultTab = 'stories' // NEW
 }) => {
   const [selectedStory, setSelectedStory] = useState<ImpactStory | null>(null);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
@@ -345,7 +349,16 @@ const SidePanel: React.FC<SidePanelProps> = ({
 
   const navigate = useNavigate();
   const viewDetails = (id: number) => {
-    navigate(`/project/${id}`);
+    // Include referrer info to enable proper back navigation
+    const params = new URLSearchParams();
+    params.set('from', 'map');
+    
+    // If a district is selected, include it so we can return to the same view
+    if (selectedDistrict) {
+      params.set('district', selectedDistrict);
+    }
+    
+    navigate(`/project/${id}?${params.toString()}`);
   };
 
   const filteredStories = selectedDistrict 
@@ -402,7 +415,7 @@ const SidePanel: React.FC<SidePanelProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="overflow-y-auto pb-6" style={{ height: `calc(${panelHeight}px - 4rem)` }}>
-          <Tabs defaultValue="stories" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="stories">Stories</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
@@ -574,14 +587,14 @@ const saveMyDonations = (obj: Record<number, number>) => {
   }
 };
 
-const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKongMapProps) => {
+const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialSelectedDistrict = null, defaultSidePanelTab = 'stories' }: HongKongMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapInstance | null>(null);
   const mapInitialized = useRef<boolean>(false);
   const selectedFeatureId = useRef<string | number | null>(null);
   
   // Side panel data and state
-  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(initialSelectedDistrict);
   const [stories, setStories] = useState<ImpactStory[]>([]);
   const [projects, setProjects] = useState<DonationProject[]>([]);
 
@@ -990,6 +1003,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate }: HongKo
           onDonate={handleProjectDonate}
           panelHeight={window.innerWidth < 1024 ? 300 : height}
           myDonations={myDonations}
+          defaultTab={defaultSidePanelTab}
         />
       </div>
     </div>

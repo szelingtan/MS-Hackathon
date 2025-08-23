@@ -27,7 +27,8 @@ const ProfileProjects = () => {
   ];
   const navigate = useNavigate();
   const viewDetails = (id: number) => {
-    navigate(`/project/${id}`);
+    // Include referrer info for proper back navigation
+    navigate(`/project/${id}?from=profile`);
   };
 
   return (

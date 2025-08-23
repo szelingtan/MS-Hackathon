@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react"
 
@@ -47,6 +47,33 @@ const ProjectDetails = () => {
 const { id } = useParams()
 const projectId = parseInt(id || "0")
 const navigate = useNavigate()
+const location = useLocation()
+
+// Function to handle back navigation based on how user arrived
+const handleBackNavigation = () => {
+    const searchParams = new URLSearchParams(location.search)
+    const from = searchParams.get('from')
+    const district = searchParams.get('district')
+    
+    if (from === 'map') {
+        // Came from the Hong Kong Districts map (which is in the feed tab)
+        const backParams = new URLSearchParams();
+        backParams.set('tab', 'feed');
+        backParams.set('fromProject', 'true'); // Indicate we're coming from a project
+        
+        if (district) {
+            backParams.set('district', district);
+        }
+        
+        navigate(`/dashboard?${backParams.toString()}`);
+    } else if (from === 'profile') {
+        // Came from profile projects
+        navigate('/profile')
+    } else {
+        // Fallback - go to dashboard feed tab with project indication
+        navigate('/dashboard?tab=feed&fromProject=true')
+    }
+}
 
 const [projectMilestones, setProjectMilestones] = useState<ProjectMilestones | null>(null)
 const [projectData, setProjectData] = useState<Project | null>(null)
@@ -104,13 +131,13 @@ if (loading) {
     )
 }
 
-if (!projectMilestones || !projectData) {
+if (!projectData) {
     return (
     <div className="min-h-screen flex items-center justify-center">
         <div>
         <h2 className="text-xl font-bold">Project not found</h2>
         <button
-            onClick={() => navigate("/dashboard")}
+            onClick={handleBackNavigation}
             className="mt-4 text-blue-600 underline"
         >
             Go back
@@ -128,7 +155,7 @@ return (
         <div className="relative bg-white rounded-lg shadow-lg p-8 space-y-8">
         {/* Back Button */}
         <button
-            onClick={() => navigate(-1)}
+            onClick={handleBackNavigation}
             className="inline-flex items-center gap-2 text-sm font-medium text-sm text-[#b58863] hover:text-[#a06f43] transition duration-150 mb-6"
         >
             <svg
@@ -179,9 +206,10 @@ return (
         {/* Milestones */}
         <div className="space-y-6">
             <h2 className="text-xl font-semibold mb-4">Milestones</h2>
-            {projectMilestones.milestones.length === 0 && (
+            {(!projectMilestones || projectMilestones.milestones.length === 0) && (
             <p className="text-gray-500 italic">No milestones available for this project.</p>
             )}
+            {projectMilestones && projectMilestones.milestones.length > 0 && (
             <div className="grid gap-6 md:grid-cols-2">
             {projectMilestones.milestones.map((milestone) => (
                 <div
@@ -204,6 +232,7 @@ return (
                 </div>
             ))}
             </div>
+            )}
         </div>
         </div>
     </div>
