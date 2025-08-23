@@ -20,7 +20,7 @@ interface GardenBackendState {
 }
 
 export const useGardenBackend = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refreshUserData } = useAuth();
   const [gardenState, setGardenState] = useState<GardenBackendState>({
     waterDrops: 100,
     ownedPlants: ['seedling', 'grass'],
@@ -122,6 +122,11 @@ export const useGardenBackend = () => {
           [ownedField]: [...prev[ownedField], itemId],
           loading: false
         }));
+        
+        // Also refresh auth user data to update navbar
+        if (refreshUserData) {
+          await refreshUserData();
+        }
       } else {
         setGardenState(prev => ({ ...prev, loading: false }));
       }
@@ -132,7 +137,7 @@ export const useGardenBackend = () => {
       setGardenState(prev => ({ ...prev, loading: false }));
       return false;
     }
-  }, [isAuthenticated, user?.user_id]);
+  }, [isAuthenticated, user?.user_id, refreshUserData]);
 
   // Complete challenge
   const completeChallenge = useCallback(async (challengeId: string) => {
@@ -185,6 +190,11 @@ export const useGardenBackend = () => {
           },
           loading: false
         }));
+        
+        // Also refresh auth user data to update navbar
+        if (refreshUserData) {
+          await refreshUserData();
+        }
       } else {
         setGardenState(prev => ({ ...prev, loading: false }));
       }
@@ -195,7 +205,7 @@ export const useGardenBackend = () => {
       setGardenState(prev => ({ ...prev, loading: false }));
       return false;
     }
-  }, [isAuthenticated, user?.user_id]);
+  }, [isAuthenticated, user?.user_id, refreshUserData]);
 
   // Reset daily challenges
   const resetDailyChallenges = useCallback(async () => {
@@ -245,6 +255,30 @@ export const useGardenBackend = () => {
     }
   }, [isAuthenticated, user?.user_id]);
 
+  // Sync water amount from donors collection
+  const syncWaterAmount = useCallback(async (): Promise<number | null> => {
+    if (!isAuthenticated || !user?.user_id) return null;
+
+    try {
+      const syncedAmount = await GardenService.syncWaterAmount(user.user_id);
+      if (syncedAmount !== null) {
+        setGardenState(prev => ({
+          ...prev,
+          waterDrops: syncedAmount
+        }));
+        
+        // Also refresh auth user data to update navbar
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+      }
+      return syncedAmount;
+    } catch (error) {
+      console.error('Error syncing water amount:', error);
+      return null;
+    }
+  }, [isAuthenticated, user?.user_id, refreshUserData]);
+
   // Initialize on authentication
   useEffect(() => {
     if (isAuthenticated && !gardenState.initialized) {
@@ -262,6 +296,7 @@ export const useGardenBackend = () => {
     resetDailyChallenges,
     makeGardenPublic,
     addWaterDrops,
-    initializeGarden
+    initializeGarden,
+    syncWaterAmount
   };
 };

@@ -33,8 +33,8 @@ interface DonationProject {
 }
 
 const UserDashboard = () => {
-  const { user, logout, processDonation, updateCounter } = useAuth();
-  const { addWaterDrops } = useGardenBackend();
+  const { user, logout, processDonation, updateCounter, refreshUserData } = useAuth();
+  const { addWaterDrops, syncWaterAmount } = useGardenBackend();
   const [activeTab, setActiveTab] = useState("game");
   const [donationAmount, setDonationAmount] = useState(10);
   const [isDonationDialogOpen, setIsDonationDialogOpen] = useState(false);
@@ -51,7 +51,9 @@ const UserDashboard = () => {
   // Update local water amount when user changes
   useEffect(() => {
     if (user?.water_amount !== undefined) {
+      console.log('User water_amount changed in effect:', user.water_amount);
       setLocalWaterAmount(user.water_amount);
+      setRenderKey(prev => prev + 1); // Force re-render when water amount changes
     }
   }, [user?.water_amount]);
 
@@ -59,7 +61,9 @@ const UserDashboard = () => {
   useEffect(() => {
     const handleWaterDropUpdate = (event: CustomEvent) => {
       console.log('Received waterDropsUpdated event:', event.detail);
-      setLocalWaterAmount(event.detail.newTotal || user?.water_amount || 0);
+      const newAmount = event.detail.newTotal || user?.water_amount || 0;
+      console.log('Setting local water amount to:', newAmount);
+      setLocalWaterAmount(newAmount);
       setRenderKey(prev => prev + 1);
     };
 
@@ -172,14 +176,53 @@ const UserDashboard = () => {
         toast.success(`Thank you for donating $${donationAmount}! You received ${result.waterDropsEarned} water drops! 💧`);
       }
       
-      // Also update garden backend
+      // Immediately update the local water amount with the new total from the result
+      const newWaterTotal = result.newWaterAmount;
+      console.log('Immediately updating local water amount to:', newWaterTotal);
+      setLocalWaterAmount(newWaterTotal);
+      setRenderKey(prev => prev + 1);
+      
+      // Sync garden backend with the updated water amount from donors collection
       const waterDropsEarned = Math.floor(donationAmount * 5);
-      await addWaterDrops(waterDropsEarned);
+      
+      // Then refresh and sync everything else
+      const refreshedUser = await refreshUserData();
+      await syncWaterAmount();
+      
+      // Update local water amount state with the refreshed amount or result amount
+      const finalWaterAmount = refreshedUser?.water_amount || newWaterTotal || (user.water_amount || 0);
+      console.log('Final water amount being set:', finalWaterAmount);
+      setLocalWaterAmount(finalWaterAmount);
+      
+      // Force render key update
+      setRenderKey(prev => prev + 1);
+      
+      // Dispatch custom event to ensure UI updates
+      window.dispatchEvent(new CustomEvent('waterDropsUpdated', {
+        detail: {
+          newTotal: finalWaterAmount,
+          amountAdded: waterDropsEarned
+        }
+      }));
       
       // Close dialog and reset form
       setIsDonationDialogOpen(false);
       setDonationAmount(10);
       setCurrentProject(null);
+
+      // Add a small delay to ensure Firebase has processed everything
+      setTimeout(async () => {
+        try {
+          // Additional refresh to ensure navbar is updated
+          const finalRefresh = await refreshUserData();
+          if (finalRefresh) {
+            setLocalWaterAmount(finalRefresh.water_amount || 0);
+            setRenderKey(prev => prev + 1);
+          }
+        } catch (error) {
+          console.error('Error in final refresh:', error);
+        }
+      }, 1000);
 
       // Trigger any update callbacks
       handleDonationUpdate();
