@@ -47,15 +47,15 @@
   },
   {
     "projectId": 3,
-    "district": "Eastern",
-    "title": "Healthy Meals Initiative",
+    "title": "English Tutoring Program",
+    "description": "Our tutoring program in Eastern district has provided over 30 kids with better access to language educational resources.",
     "milestones": [
       {
         "id": "mile-3-1",
-        "title": "Meal Plan Finalized",
-        "description": "Balanced meal menu approved by nutritionist.",
+        "title": "First Class Conducted",
+        "description": "First class of 10 students joined the program and it was a success!",
         "impact": "Improved meal quality",
-        "image": "/images/milestones/meal.png",
+        "image": "/images/milestones/class.png",
         "date": "2025-07-10"
       }
     ]

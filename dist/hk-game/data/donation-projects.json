@@ -26,13 +26,13 @@
   {
     "id": 3,
     "district": "Eastern",
-    "title": "Healthy Meals Initiative",
-    "description": "Support our nutrition program that provides balanced breakfast and lunch for underprivileged students.",
+    "title": "English Tutoring Program",
+    "description": "Our tutoring program in Eastern district has provided over 30 kids with better access to language educational resources.",
     "goal": 15000,
     "raised": 8200,
     "supporters": 67,
     "urgency": "high",
-    "category": "Nutrition",
+    "category": "Language",
     "image": "/api/placeholder/300/200"
   },
   {
