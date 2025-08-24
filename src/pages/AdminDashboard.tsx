@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import ImpactStoryFeed from '@/components/ImpactStoryFeed';
 import treeLogo from "@/assets/tree.png";
 import reachTogetherLogo from "@/assets/reachTogether.png";
+import mockDonorsData from '@/data/donors.json';
 
 type TimeRangeKey = '3months' | '6months' | '1year';
 type NavTab =
@@ -28,85 +29,45 @@ type NavTab =
   | 'socialEngagement'
   | 'impact';
 
+const RECENT_DONOR_COUNT = 10;
+
+interface Donor {
+  id: number;
+  name: string;
+  email: string;
+  totalDonated: number;
+  lastDonation: string;
+  status: string;
+  region: string;
+  plantLevel: number;
+  plantType: string;
+  votes: number;
+}
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState<TimeRangeKey>('6months');
-  const [navTab, setNavTab] = useState<NavTab>('overview'); // NEW: navigation
+  const [navTab, setNavTab] = useState<NavTab>('overview');
 
-  // --- Mock donor data ---
-  const mockDonors = [
-    { id: 1, name: "Sarah Johnson", email: "sarah@email.com", totalDonated: 820, lastDonation: "2024-01-15", status: "Active", region: "District 1" },
-    { id: 2, name: "Mike Chen", email: "mike@email.com", totalDonated: 540, lastDonation: "2024-01-14", status: "Premium", region: "District 2" },
-    { id: 3, name: "Emma Wilson", email: "emma@email.com", totalDonated: 980, lastDonation: "2024-01-13", status: "Active", region: "District 3" },
-    { id: 4, name: "David Brown", email: "david@email.com", totalDonated: 320, lastDonation: "2024-01-12", status: "Active", region: "District 4" },
-    { id: 5, name: "Lisa Garcia", email: "lisa@email.com", totalDonated: 720, lastDonation: "2024-01-11", status: "Premium", region: "District 5" },
-    { id: 6, name: "John Wong", email: "john@email.com", totalDonated: 640, lastDonation: "2024-01-10", status: "Active", region: "District 6" },
-    { id: 7, name: "Amy Lee", email: "amy@email.com", totalDonated: 410, lastDonation: "2024-01-09", status: "Active", region: "District 7" },
-    { id: 8, name: "Peter Tan", email: "peter@email.com", totalDonated: 785, lastDonation: "2024-01-08", status: "Premium", region: "District 8" },
-    { id: 9, name: "Jenny Kim", email: "jenny@email.com", totalDonated: 630, lastDonation: "2024-01-07", status: "Active", region: "District 9" },
-    { id: 10, name: "Alex Ng", email: "alex@email.com", totalDonated: 920, lastDonation: "2024-01-06", status: "Premium", region: "District 10" },
-    { id: 11, name: "Grace Liu", email: "grace@email.com", totalDonated: 450, lastDonation: "2024-01-05", status: "Active", region: "District 11" },
-    { id: 12, name: "Kevin Lau", email: "kevin@email.com", totalDonated: 880, lastDonation: "2024-01-04", status: "Active", region: "District 12" },
-  
-    // --- Additional 48 donors auto-generated manually ---
-    { id: 13, name: "Rachel Tan", email: "rachel@email.com", totalDonated: 760, lastDonation: "2024-01-03", status: "Premium", region: "District 13" },
-    { id: 14, name: "James Lim", email: "james@email.com", totalDonated: 470, lastDonation: "2024-01-03", status: "Active", region: "District 14" },
-    { id: 15, name: "Priya Singh", email: "priya@email.com", totalDonated: 620, lastDonation: "2024-01-02", status: "Active", region: "District 15" },
-    { id: 16, name: "Anand Patel", email: "anand@email.com", totalDonated: 850, lastDonation: "2024-01-02", status: "Premium", region: "District 16" },
-    { id: 17, name: "Siti Nurhaliza", email: "siti@email.com", totalDonated: 390, lastDonation: "2024-01-01", status: "Active", region: "District 17" },
-    { id: 18, name: "Mohd Zulkifli", email: "zul@email.com", totalDonated: 580, lastDonation: "2024-01-01", status: "Active", region: "District 18" },
-    { id: 19, name: "Ethan Koh", email: "ethan@email.com", totalDonated: 670, lastDonation: "2023-12-29", status: "Premium", region: "District 1" },
-    { id: 20, name: "Sophia Tan", email: "sophia@email.com", totalDonated: 720, lastDonation: "2023-12-28", status: "Active", region: "District 2" },
-    { id: 21, name: "Daniel Park", email: "daniel@email.com", totalDonated: 800, lastDonation: "2023-12-28", status: "Active", region: "District 3" },
-    { id: 22, name: "Kim Min", email: "kim@email.com", totalDonated: 540, lastDonation: "2023-12-27", status: "Premium", region: "District 4" },
-    { id: 23, name: "Olivia Brown", email: "olivia@email.com", totalDonated: 860, lastDonation: "2023-12-27", status: "Active", region: "District 5" },
-    { id: 24, name: "Liam Johnson", email: "liam@email.com", totalDonated: 730, lastDonation: "2023-12-25", status: "Active", region: "District 6" },
-    { id: 25, name: "Isabella Chen", email: "isabella@email.com", totalDonated: 900, lastDonation: "2023-12-24", status: "Premium", region: "District 7" },
-    { id: 26, name: "Jack Lee", email: "jack@email.com", totalDonated: 460, lastDonation: "2023-12-23", status: "Active", region: "District 8" },
-    { id: 27, name: "Charlotte Kim", email: "charlotte@email.com", totalDonated: 680, lastDonation: "2023-12-23", status: "Active", region: "District 9" },
-    { id: 28, name: "Benjamin Lim", email: "ben@email.com", totalDonated: 500, lastDonation: "2023-12-22", status: "Premium", region: "District 10" },
-    { id: 29, name: "Aarav Gupta", email: "aarav@email.com", totalDonated: 770, lastDonation: "2023-12-21", status: "Active", region: "District 11" },
-    { id: 30, name: "Emily Wong", email: "emily@email.com", totalDonated: 690, lastDonation: "2023-12-21", status: "Active", region: "District 12" },
-    { id: 31, name: "Hannah Lee", email: "hannah@email.com", totalDonated: 930, lastDonation: "2023-12-20", status: "Premium", region: "District 13" },
-    { id: 32, name: "Chloe Tan", email: "chloe@email.com", totalDonated: 510, lastDonation: "2023-12-20", status: "Active", region: "District 14" },
-    { id: 33, name: "Noah Smith", email: "noah@email.com", totalDonated: 890, lastDonation: "2023-12-19", status: "Active", region: "District 15" },
-    { id: 34, name: "Mia Lim", email: "mia@email.com", totalDonated: 740, lastDonation: "2023-12-18", status: "Premium", region: "District 16" },
-    { id: 35, name: "Lucas Lee", email: "lucas@email.com", totalDonated: 830, lastDonation: "2023-12-17", status: "Active", region: "District 17" },
-    { id: 36, name: "Aiden Chua", email: "aiden@email.com", totalDonated: 650, lastDonation: "2023-12-17", status: "Active", region: "District 18" },
-    { id: 37, name: "Zoe Chen", email: "zoe@email.com", totalDonated: 720, lastDonation: "2023-12-16", status: "Premium", region: "District 1" },
-    { id: 38, name: "Evelyn Ng", email: "evelyn@email.com", totalDonated: 570, lastDonation: "2023-12-15", status: "Active", region: "District 2" },
-    { id: 39, name: "Elijah Tan", email: "elijah@email.com", totalDonated: 610, lastDonation: "2023-12-14", status: "Active", region: "District 3" },
-    { id: 40, name: "Harper Lim", email: "harper@email.com", totalDonated: 910, lastDonation: "2023-12-13", status: "Premium", region: "District 4" },
-    { id: 41, name: "Mason Ho", email: "mason@email.com", totalDonated: 870, lastDonation: "2023-12-13", status: "Active", region: "District 5" },
-    { id: 42, name: "Ella Park", email: "ella@email.com", totalDonated: 750, lastDonation: "2023-12-12", status: "Active", region: "District 6" },
-    { id: 43, name: "Ryan Ong", email: "ryan@email.com", totalDonated: 640, lastDonation: "2023-12-12", status: "Premium", region: "District 7" },
-    { id: 44, name: "Aria Tan", email: "aria@email.com", totalDonated: 720, lastDonation: "2023-12-11", status: "Active", region: "District 8" },
-    { id: 45, name: "Henry Lau", email: "henry@email.com", totalDonated: 580, lastDonation: "2023-12-11", status: "Active", region: "District 9" },
-    { id: 46, name: "Grace Tan", email: "grace.tan@email.com", totalDonated: 830, lastDonation: "2023-12-10", status: "Premium", region: "District 10" },
-    { id: 47, name: "Nathan Lee", email: "nathan@email.com", totalDonated: 620, lastDonation: "2023-12-09", status: "Active", region: "District 11" },
-    { id: 48, name: "Sophie Chan", email: "sophie@email.com", totalDonated: 870, lastDonation: "2023-12-08", status: "Active", region: "District 12" },
-    { id: 49, name: "Gabriel Lim", email: "gabriel@email.com", totalDonated: 940, lastDonation: "2023-12-08", status: "Premium", region: "District 13" },
-    { id: 50, name: "Victoria Ng", email: "victoria@email.com", totalDonated: 780, lastDonation: "2023-12-07", status: "Active", region: "District 14" },
-    { id: 51, name: "Dylan Tan", email: "dylan@email.com", totalDonated: 520, lastDonation: "2023-12-07", status: "Active", region: "District 15" },
-    { id: 52, name: "Lily Zhang", email: "lily@email.com", totalDonated: 860, lastDonation: "2023-12-06", status: "Premium", region: "District 16" },
-    { id: 53, name: "Caleb Wong", email: "caleb@email.com", totalDonated: 750, lastDonation: "2023-12-05", status: "Active", region: "District 17" },
-    { id: 54, name: "Amelia Low", email: "amelia@email.com", totalDonated: 900, lastDonation: "2023-12-04", status: "Active", region: "District 18" },
-    { id: 55, name: "Joshua Chua", email: "joshua@email.com", totalDonated: 810, lastDonation: "2023-12-04", status: "Premium", region: "District 1" },
-    { id: 56, name: "Madeline Koh", email: "madeline@email.com", totalDonated: 670, lastDonation: "2023-12-03", status: "Active", region: "District 2" },
-    { id: 57, name: "Samuel Ho", email: "samuel@email.com", totalDonated: 710, lastDonation: "2023-12-02", status: "Active", region: "District 3" },
-    { id: 58, name: "Chloe Ng", email: "chloe@email.com", totalDonated: 850, lastDonation: "2023-12-02", status: "Premium", region: "District 4" },
-    { id: 59, name: "Adam Lee", email: "adam@email.com", totalDonated: 780, lastDonation: "2023-12-01", status: "Active", region: "District 5" },
-    { id: 60, name: "Samantha Chen", email: "samantha@email.com", totalDonated: 930, lastDonation: "2023-12-01", status: "Active", region: "District 6" }
+  // Load mock donors from JSON file
+  const mockDonors: Donor[] = mockDonorsData;
+
+  // Hong Kong districts mapping
+  const hkDistricts = [
+    "Central & Western", "Wan Chai", "Eastern", "Southern", "Kowloon City",
+    "Kwun Tong", "Sham Shui Po", "Wong Tai Sin", "Yau Tsim Mong", "Islands",
+    "Kwai Tsing", "North", "Sai Kung", "Sha Tin", "Tai Po", "Tsuen Wan",
+    "Tuen Mun", "Yuen Long"
   ];
 
-  // --- Metrics derived from donor data (kept) ---
+  // --- Metrics derived from donor data ---
   const totalDonors = mockDonors.length;
   const totalRaised = mockDonors.reduce((sum, d) => sum + d.totalDonated, 0);
   const activeDonors = mockDonors.filter(d => d.status === "Active").length;
   const premiumDonors = mockDonors.filter(d => d.status === "Premium").length;
 
-  // --- Time-series data (kept) ---
+  // --- Time-series data ---
   const dataByPeriod: Record<TimeRangeKey, {
     donations: Array<{ date: string; amount: number; count: number }>;
     growth: Array<{ date: string; users: number; growth: number }>;
@@ -245,13 +206,13 @@ const AdminDashboard = () => {
 
   const currentData = dataByPeriod[timeRange];
 
-  // --- Donor status (kept) ---
+  // --- Donor status ---
   const donorSegments = [
     { name: 'Active', value: activeDonors, color: '#8ab371' },
     { name: 'Premium', value: premiumDonors, color: '#fdba74' }
   ];
 
-  // --- Social feed (kept) ---
+  // --- Social feed ---
   const socialFeedData = [
     { category: 'Impact Stories', posts: 28, views: 1420, likes: 156, shares: 42 },
     { category: 'Parent Updates', posts: 34, views: 1680, likes: 203, shares: 28 },
@@ -259,46 +220,28 @@ const AdminDashboard = () => {
     { category: 'Volunteer Highlights', posts: 12, views: 640, likes: 87, shares: 19 }
   ];
 
-  // --- NEW: 18 Districts with proportional split (deterministic, sums to totals) ---
+  // --- Geographic data for Hong Kong districts ---
   const geographicData = useMemo(() => {
-    const districtNames = Array.from({ length: 18 }, (_, i) => `District ${i + 1}`);
-
-    // A fixed weight pattern (peaks in a few districts) – no randomness, consistent across renders
-    const baseWeights = [
-      1.4, 1.1, 0.8, 0.9, 1.2, 0.7,
-      1.3, 1.0, 0.6, 1.5, 0.95, 0.85,
-      1.25, 0.75, 1.05, 0.65, 1.35, 0.9
-    ];
-    const weightSum = baseWeights.reduce((s, w) => s + w, 0);
-
-    // Distribute donors to sum exactly to totalDonors (round robin to fix rounding drift)
-    const donorAllocFloat = baseWeights.map(w => (w / weightSum) * totalDonors);
-    const donorAlloc = donorAllocFloat.map(Math.floor);
-    const remaining = totalDonors - donorAlloc.reduce((s, n) => s + n, 0);
-    // add the remaining donors to the largest fractional remainders
-    const remainders = donorAllocFloat.map((v, idx) => ({ idx, frac: v - Math.floor(v) }))
-      .sort((a, b) => b.frac - a.frac);
-    for (let i = 0; i < remaining; i++) donorAlloc[remainders[i].idx] += 1;
-
-    // Distribute amount proportionally as well
-    const amountAlloc = baseWeights.map(w => Math.round((w / weightSum) * totalRaised));
-
-    const colors = ['#8ab371', '#87ceeb', '#fdba74']; // cycle your existing palette
-    return districtNames.map((district, i) => {
-      const donors = donorAlloc[i];
-      const amount = amountAlloc[i];
+    // Group donors by district and calculate metrics
+    const districtData = hkDistricts.map(district => {
+      const districtDonors = mockDonors.filter(donor => donor.region === district);
+      const donors = districtDonors.length;
+      const amount = districtDonors.reduce((sum, donor) => sum + donor.totalDonated, 0);
       const percentage = totalDonors > 0 ? Math.round((donors / totalDonors) * 100) : 0;
+      
       return {
         district,
         donors,
         amount,
         percentage,
-        color: colors[i % colors.length]
+        color: '#8ab371' // Using consistent color for all districts
       };
     });
-  }, [totalDonors, totalRaised]);
 
-  // --- Impact metrics (kept) ---
+    return districtData.sort((a, b) => b.amount - a.amount); // Sort by amount descending
+  }, [mockDonors, totalDonors]);
+
+  // --- Impact metrics ---
   const impactMetrics = [
     { metric: 'Children Reached', value: totalDonors * 7, growth: 15.2 },
     { metric: 'Learning Hours', value: Math.floor(totalRaised / 2), growth: 22.8 },
@@ -306,7 +249,7 @@ const AdminDashboard = () => {
     { metric: 'Partner Schools', value: 12, growth: 33.3 }
   ];
 
-  // --- UI pieces (kept) ---
+  // ...existing code...
   const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass = "text-plant-growth" }:{
     title: string; value: string; subtitle?: string; icon: LucideIcon; trend?: number; colorClass?: string;
   }) => (
@@ -348,7 +291,7 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  // --- Page sections (same design, split by tab) ---
+  // --- Page sections ---
   const DonationTrendsCard = () => (
     <Card className="shadow-soft">
       <CardHeader>
@@ -458,17 +401,6 @@ const AdminDashboard = () => {
   );
 
   const AmountByDistrictCard = () => {
-    // sort districts naturally by number (1 → 18)
-    const data = React.useMemo(
-      () =>
-        [...geographicData].sort((a, b) => {
-          const numA = parseInt(a.district.split(" ")[1], 10);
-          const numB = parseInt(b.district.split(" ")[1], 10);
-          return numA - numB;
-        }),
-      []
-    );
-  
     return (
       <Card className="shadow-soft">
         <CardHeader>
@@ -479,7 +411,7 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={360}>
-            <BarChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
+            <BarChart data={geographicData} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
               <XAxis
                 dataKey="district"
@@ -590,7 +522,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-sky">
-      {/* Header (kept) */}
+      {/* Header */}
       <header className="border-b border-border/30 bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -618,7 +550,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* NEW: Navigation bar */}
+        {/* Navigation bar */}
         <div className="container mx-auto px-4 pb-3 pt-2">
           <div className="flex flex-wrap gap-2">
             {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
@@ -645,7 +577,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8 space-y-8">
         {navTab === 'overview' && (
           <>
-            {/* KPI page: just the 4 cards */}
+            {/* KPI cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <KPICard
                 title="Total Donors"
@@ -681,7 +613,7 @@ const AdminDashboard = () => {
               />
             </div>
 
-            {/* Keep your recent activity under Overview for convenience */}
+            {/* Recent activity */}
             <Card className="shadow-soft">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -691,7 +623,7 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockDonors.slice(0, 5).map((donor) => (
+                  {mockDonors.slice(0, RECENT_DONOR_COUNT).map((donor) => (
                     <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                       <div className="flex items-center">
                         <div
