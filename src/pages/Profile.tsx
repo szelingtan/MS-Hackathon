@@ -34,9 +34,9 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      setEmail(user.email);
-      setDisplayName(user.name);
-      setDistrictId(user.district_id);
+      setEmail(user.email || "");
+      setDisplayName(user.name || "");
+      setDistrictId(user.district_id || 1);
     }
   }, [user]);
 
@@ -93,11 +93,11 @@ const Profile = () => {
                 <div className="flex items-center gap-4 mt-2">
                   <div className="flex items-center gap-1">
                     <span className="text-2xl">💧</span>
-                    <span className="font-semibold text-plant-growth">{user.water_amount}</span>
+                    <span className="font-semibold text-plant-growth">{user?.water_amount || 0}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="text-2xl">💝</span>
-                    <span className="font-semibold text-accent">${user.donated_amount}</span>
+                    <span className="font-semibold text-accent">${user?.donated_amount || 0}</span>
                   </div>
                 </div>
               </div>
@@ -179,16 +179,16 @@ const Profile = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <p className="text-2xl font-bold text-plant-growth">{user.water_amount}</p>
+                    <p className="text-2xl font-bold text-plant-growth">{user?.water_amount || 0}</p>
                     <p className="text-sm text-muted-foreground">Water Drops</p>
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
-                    <p className="text-2xl font-bold text-accent">${user.donated_amount}</p>
+                    <p className="text-2xl font-bold text-accent">${user?.donated_amount || 0}</p>
                     <p className="text-sm text-muted-foreground">Total Donated</p>
                   </div>
                 </div>
                 <div className="text-center p-4 bg-muted/30 rounded-lg">
-                  <p className="text-lg font-medium">{districtMap[user.district_id as keyof typeof districtMap]}</p>
+                  <p className="text-lg font-medium">{districtMap[user?.district_id as keyof typeof districtMap] || "Unknown District"}</p>
                   <p className="text-sm text-muted-foreground">Your District</p>
                 </div>
               </CardContent>

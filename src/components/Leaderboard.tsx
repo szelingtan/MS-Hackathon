@@ -90,7 +90,7 @@ const Leaderboard = () => {
         id: user?.user_id || 'current-user',
         name: user?.name || "Guest",
         totalDonated: user?.donated_amount || 0,
-        district: districtMap[user.district_id as keyof typeof districtMap]
+        district: districtMap[user?.district_id as keyof typeof districtMap] || "Unknown District"
     };
 
     // Get all donors for overall leaderboard and include current user

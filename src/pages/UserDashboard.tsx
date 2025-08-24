@@ -297,11 +297,11 @@ const UserDashboard = () => {
                   <span className="text-sm font-medium text-blue-700">{localWaterAmount}</span>
                 </div>
                 <div 
-                  key={`donated-${renderKey}-${user.donated_amount}`}
+                  key={`donated-${renderKey}-${user?.donated_amount || 0}`}
                   className="flex items-center gap-2 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-full border border-green-200 transition-colors"
                 >
                   <Heart className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">${user.donated_amount}</span>
+                  <span className="text-sm font-medium text-green-700">${user?.donated_amount || 0}</span>
                 </div>
               </div>
               
@@ -310,7 +310,7 @@ const UserDashboard = () => {
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center gap-2 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-full border border-amber-200 transition-colors cursor-pointer">
                     <User className="h-4 w-4 text-amber-700" />
-                    <span className="text-sm font-medium text-amber-800">{user.name}</span>
+                    <span className="text-sm font-medium text-amber-800">{user?.name || "Guest"}</span>
                     <ChevronDown className="h-4 w-4 text-amber-700" />
                   </div>
                 </DropdownMenuTrigger>
@@ -351,7 +351,7 @@ const UserDashboard = () => {
           </TabsList>
 
           <TabsContent value="game" className="space-y-6">
-            <PlantGame userId={user.user_id} />
+            <PlantGame userId={user?.user_id || ""} />
           </TabsContent>
 
           <TabsContent value="feed" className="space-y-4 sm:space-y-6">
