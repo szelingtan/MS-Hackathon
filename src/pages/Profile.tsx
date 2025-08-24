@@ -76,7 +76,7 @@ const Profile = () => {
       <div className="container mx-auto max-w-4xl space-y-6">
 
         {/* Back Button */}
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>
           ← Back
         </Button>
 
