@@ -915,38 +915,48 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             map.current!.getCanvas().style.cursor = '';
           });
 
-          
-
           map.current!.on('click', 'hk-fill', (e: MapEvent) => {
             if (!e.features?.length) return;
             const f = e.features[0] as Feature;
             const id = f.id as string | number;
 
-            // Toggle off if clicking the already-selected feature
-            if (selectedIdRef.current !== null && selectedIdRef.current === id) {
-              map.current!.setFeatureState({ source: 'hk', id }, { selected: false });
-              selectedIdRef.current = null;
+            // pull a readable district name from properties
+            const p = f.properties || {};
+            const districtName =
+              (p.ENAME as string) ||
+              (p.Name_en as string) ||
+              (p.NAME_EN as string) ||
+              (p.DISTRICT as string) ||
+              (p.District as string) ||
+              (p.name as string) ||
+              (p.NAME as string) ||
+              (p.CNAME as string) ||
+              'Unknown District';
 
-              // camera + mask reset to your defaults
-              map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.3);
-              map.current!.flyTo({ center: [114.1694, 22.3193], zoom: 9.6, pitch: 50, bearing: -10, duration: 1000 });
+            // toggle off if re-clicking the same feature
+            if (selectedIdRef.current !== null && selectedIdRef.current === id) {
+              handleClearSelection();            // <- also clears selectedDistrict
               return;
             }
 
-            // Clear previous selection (works for id 0)
+            // clear previous selection (works for id 0)
             if (selectedIdRef.current !== null) {
               map.current!.setFeatureState({ source: 'hk', id: selectedIdRef.current }, { selected: false });
             }
 
-            // Set new selection
+            // set new selection
             selectedIdRef.current = id;
             map.current!.setFeatureState({ source: 'hk', id }, { selected: true });
 
-            // your existing zoom/mask
+            // update React state used by the SidePanel filters
+            handleDistrictClick(String(districtName));
+
+            // camera + mask
             const bbox = window.turf.bbox(f);
             map.current!.fitBounds(bbox, { padding: 50, duration: 1000 });
             map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.1);
           });
+
 
           // Click on empty map clears selection
           map.current!.on('click', (e: MapEvent) => {
