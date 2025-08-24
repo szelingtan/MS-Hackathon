@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
 import {
     Award,
     Crown,
@@ -52,15 +53,6 @@ const districts = [
     }
 ];
 
-// Mock user data
-const userData = {
-    id: 1,
-    name: "Sarah Johnson",
-    totalDonated: 450,
-    rank: 3,
-    district: "district-1"
-};
-
 // Motivational quotes
 const quotes = [
     "Every donation plants a seed of hope in a child's future.",
@@ -72,9 +64,9 @@ const quotes = [
 
 const Leaderboard = () => {
     const [selectedTab, setSelectedTab] = useState("voting");
-    const [votedPlants, setVotedPlants] = useState(new Set());
+    const [votedDonors, setVotedDonors] = useState(new Set());
     const [currentQuote, setCurrentQuote] = useState(quotes[0]);
-    const [hasVotedToday, setHasVotedToday] = useState(false);
+    const { user } = useAuth();
 
     // Rotate quotes every 10 seconds
     useEffect(() => {
@@ -83,6 +75,14 @@ const Leaderboard = () => {
         }, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    const userData = {
+        id: 1,
+        name: user?.name || "Guest",
+        totalDonated: user?.donated_amount || 0,
+        rank: 3,
+        district: "district-1"
+    };
 
     // Get all donors for overall leaderboard
     const allDonors = districts.flatMap(district =>
@@ -95,15 +95,20 @@ const Leaderboard = () => {
 
     const topDonors = allDonors.sort((a, b) => b.votes - a.votes);
 
-    const handleVote = (donorId, districtId) => {
-        if (!votedPlants.has(districtId)) {
-            setVotedPlants(new Set([...votedPlants, districtId]));
-
-            // Check if voted for all districts
-            if (votedPlants.size === 2) { // Will be 3 after this vote
-                setHasVotedToday(true);
-            }
+    const handleVote = (donorId) => {
+        if (!votedDonors.has(donorId)) {
+            setVotedDonors(new Set([...votedDonors, donorId]));
         }
+    };
+
+    // Check if user has voted for anyone in a district
+    const hasVotedInDistrict = (district) => {
+        return district.donors.some(donor => votedDonors.has(donor.id));
+    };
+
+    // Check if user has voted for all districts
+    const hasVotedInAllDistricts = () => {
+        return districts.every(district => hasVotedInDistrict(district));
     };
 
     const getPlantIcon = (level) => {
@@ -164,12 +169,12 @@ const Leaderboard = () => {
                                 Daily Garden Competition
                             </CardTitle>
                             <CardDescription>
-                                Vote for the most beautiful garden in each district! You can vote once per district daily.
+                                Vote for your favorite gardens in each district! You can vote for multiple gardens.
                             </CardDescription>
-                            {hasVotedToday && (
+                            {hasVotedInAllDistricts() && (
                                 <Badge className="bg-plant-growth/20 text-plant-growth border-plant-growth/30 w-fit">
                                     <Zap className="h-3 w-3 mr-1" />
-                                    Voting Complete! +50 water drops earned
+                                    Voted in all districts! +50 water drops earned
                                 </Badge>
                             )}
                         </CardHeader>
@@ -177,19 +182,22 @@ const Leaderboard = () => {
                             {districts.map((district) => (
                                 <Card key={district.id} className="shadow-soft">
                                     <CardHeader>
-                                        <CardTitle className={`text-lg ${district.color}`}>
-                                            {district.name}
+                                        <CardTitle className={`text-lg ${district.color} flex items-center justify-between`}>
+                                            <span>{district.name}</span>
+                                            {hasVotedInDistrict(district) && (
+                                                <Badge variant="outline" className="text-green-600 border-green-300">
+                                                    ✓ Voted in district
+                                                </Badge>
+                                            )}
                                         </CardTitle>
-                                        {votedPlants.has(district.id) && (
-                                            <Badge variant="outline" className="w-fit">
-                                                ✓ Voted
-                                            </Badge>
-                                        )}
                                     </CardHeader>
                                     <CardContent>
                                         <div className="grid gap-4">
                                             {district.donors.map((donor) => {
                                                 const PlantIcon = getPlantIcon(donor.plantLevel);
+                                                const hasVotedForThis = votedDonors.has(donor.id);
+                                                const hasVotedInThisDistrict = hasVotedInDistrict(district);
+
                                                 return (
                                                     <div key={donor.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                                                         <div className="flex items-center space-x-4">
@@ -201,17 +209,40 @@ const Leaderboard = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="font-medium">{donor.name}</p>
+                                                                <p className="text-sm text-muted-foreground">{donor.plantType}</p>
                                                                 <p className="text-xs text-muted-foreground">{donor.votes} votes today</p>
                                                             </div>
                                                         </div>
-                                                        <Button
-                                                            variant={votedPlants.has(district.id) ? "outline" : "nature"}
-                                                            size="sm"
-                                                            disabled={votedPlants.has(district.id)}
-                                                            onClick={() => handleVote(donor.id, district.id)}
-                                                        >
-                                                            {votedPlants.has(district.id) ? "Voted" : "Vote"}
-                                                        </Button>
+
+                                                        {/* Updated vote button with different states */}
+                                                        {hasVotedForThis ? (
+                                                            <Button
+                                                                variant="default"
+                                                                size="sm"
+                                                                disabled
+                                                                className="bg-green-500 hover:bg-green-500 text-white"
+                                                            >
+                                                                ✓ Voted
+                                                            </Button>
+                                                        ) : hasVotedInThisDistrict ? (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleVote(donor.id)}
+                                                                className="border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                                                                disabled={true}
+                                                            >
+                                                                Vote
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                variant="nature"
+                                                                size="sm"
+                                                                onClick={() => handleVote(donor.id)}
+                                                            >
+                                                                Vote
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -313,7 +344,7 @@ const Leaderboard = () => {
                                         <p className="font-bold text-plant-growth">${userData.totalDonated}</p>
                                     </div>
                                 </div>
-                                
+
                                 {/* Garden Votes Standing */}
                                 <div className="flex items-center space-x-4 p-4 bg-accent/10 rounded-lg">
                                     <div className="flex items-center justify-center w-12 h-12 bg-accent/20 rounded-full">
@@ -326,7 +357,7 @@ const Leaderboard = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="text-center mt-4 text-sm text-muted-foreground">
                                 <p>Visit your profile to view badges and achievements!</p>
                             </div>
