@@ -65,7 +65,7 @@ const AdminDashboard = () => {
   const totalDonors = mockDonors.length;
   const totalRaised = mockDonors.reduce((sum, d) => sum + d.totalDonated, 0);
   const activeDonors = mockDonors.filter(d => d.status === "Active").length;
-  const premiumDonors = mockDonors.filter(d => d.status === "Premium").length;
+  const inactiveDonors = mockDonors.filter(d => d.status === "Inactive").length;
 
   // Calculate donation frequency per donor (random mock for illustration)
   const donorDonationFrequencies = mockDonors.map(donor => {
@@ -240,7 +240,7 @@ const AdminDashboard = () => {
   // --- Donor status ---
   const donorSegments = [
     { name: 'Active', value: activeDonors, color: '#8ab371' },
-    { name: 'Premium', value: premiumDonors, color: '#fdba74' }
+    { name: 'Inactive', value: inactiveDonors, color: '#fdba74' }
   ];
 
   // --- Social feed ---
@@ -402,7 +402,7 @@ const AdminDashboard = () => {
       <CardHeader>
         <CardTitle className="flex items-center">
           <Users className="w-5 h-5 mr-2 text-plant-growth" />
-          Donor Status Distribution
+          Donor Status
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -694,7 +694,7 @@ const AdminDashboard = () => {
                       <div className="flex items-center">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            donor.status === 'Premium' ? 'bg-orange-300' : 'bg-[#8ab371]'
+                            donor.status === 'Inactive' ? 'bg-orange-300' : 'bg-[#8ab371]'
                           }`}
                         />
                         <div>
