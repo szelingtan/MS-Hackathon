@@ -592,6 +592,8 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
   const map = useRef<MapInstance | null>(null);
   const mapInitialized = useRef<boolean>(false);
   const selectedFeatureId = useRef<string | number | null>(null);
+  const hoverIdRef = useRef<string | number | null>(null);
+  const selectedIdRef = selectedFeatureId;
   
   // Side panel data and state
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(initialSelectedDistrict);
@@ -710,21 +712,18 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
   const handleClearSelection = () => {
     setSelectedDistrict(null);
     setSelectedRegion('');
-    if (selectedFeatureId.current) {
+
+    if (selectedFeatureId.current !== null) {
       map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
       selectedFeatureId.current = null;
     }
-    // NEW: reset mask + camera
-    if (map.current) {
-      map.current.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.3);
-      map.current.flyTo({
-        center: [114.1694, 22.3193],
-        zoom: 9.6,
-        pitch: 50,
-        bearing: -10,
-        duration: 1000
-      });
+    if (hoverIdRef.current !== null) {
+      map.current!.setFeatureState({ source: 'hk', id: hoverIdRef.current }, { hover: false });
+      hoverIdRef.current = null;
     }
+
+    map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.3);
+    map.current!.flyTo({ center: [114.1694, 22.3193], zoom: 9.6, pitch: 50, bearing: -10, duration: 1000 });
   };
 
   // Attempt server persistence; no-op if endpoint is absent
@@ -879,6 +878,15 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
           let hoverId: string | number | null = null;
 
           map.current!.on('mousemove', 'hk-fill', (e: MapEvent) => {
+            const feature = e.features![0] as Feature;
+            const newHoverId = feature.id as string | number;
+            
+            if (hoverIdRef.current !== null && hoverIdRef.current !== newHoverId) {
+              map.current!.setFeatureState({ source: 'hk', id: hoverIdRef.current }, { hover: false });
+            }
+            hoverIdRef.current = newHoverId;
+            map.current!.setFeatureState({ source: 'hk', id: newHoverId }, { hover: true });
+
             if (e.features && e.features.length > 0) {
               const feature = e.features[0] as Feature;
               const newHoverId = feature.id as string | number;
@@ -901,40 +909,37 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             map.current!.getCanvas().style.cursor = ''; // NEW
           });
 
+          
+
           map.current!.on('click', 'hk-fill', (e: MapEvent) => {
-            if (e.features && e.features.length > 0) {
-              const feature = e.features[0] as Feature;
+            if (!e.features?.length) return;
+            const f = e.features[0] as Feature;
+            const id = f.id as string | number;
 
-              const districtName = 
-                feature.properties.ENAME || 
-                feature.properties.Name_en || 
-                feature.properties.NAME_EN ||
-                feature.properties.DISTRICT ||
-                feature.properties.District ||
-                feature.properties.name ||
-                feature.properties.NAME ||
-                feature.properties.CNAME ||
-                'Unknown District';
-              
-              handleDistrictClick(String(districtName));
-              
-              // clear previous selection
-              if (selectedFeatureId.current) {
-                map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
-              }
-              // new selection
-              selectedFeatureId.current = feature.id as string | number;
-              map.current!.setFeatureState({ source: 'hk', id: feature.id }, { selected: true });
+            // Toggle off if clicking the already-selected feature
+            if (selectedIdRef.current !== null && selectedIdRef.current === id) {
+              map.current!.setFeatureState({ source: 'hk', id }, { selected: false });
+              selectedIdRef.current = null;
 
-              // Slight zoom into the clicked district + dim outside
-              try {
-                const bbox = window.turf.bbox(feature);
-                map.current!.fitBounds(bbox, { padding: 50, duration: 1000 });
-                map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.1);
-              } catch (err) {
-                console.warn('fitBounds failed, falling back to no zoom.', err);
-              }
+              // camera + mask reset to your defaults
+              map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.3);
+              map.current!.flyTo({ center: [114.1694, 22.3193], zoom: 9.6, pitch: 50, bearing: -10, duration: 1000 });
+              return;
             }
+
+            // Clear previous selection (works for id 0)
+            if (selectedIdRef.current !== null) {
+              map.current!.setFeatureState({ source: 'hk', id: selectedIdRef.current }, { selected: false });
+            }
+
+            // Set new selection
+            selectedIdRef.current = id;
+            map.current!.setFeatureState({ source: 'hk', id }, { selected: true });
+
+            // your existing zoom/mask
+            const bbox = window.turf.bbox(f);
+            map.current!.fitBounds(bbox, { padding: 50, duration: 1000 });
+            map.current!.setPaintProperty('outside-mask-fill', 'fill-opacity', 0.1);
           });
 
           // Click on empty map clears selection
