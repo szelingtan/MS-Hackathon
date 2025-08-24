@@ -330,21 +330,25 @@ const Profile = () => {
                 <div>
                   <Label>Plants Collected</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {user.inventory.plants.map((plant, index) => (
-                      <Badge key={index} variant="outline" className="capitalize">
-                        🌱 {plant.replace('_', ' ')}
-                      </Badge>
-                    ))}
+                    {user?.inventory?.plants && user.inventory.plants.length > 0 ? (
+                      user.inventory.plants.map((plant, index) => (
+                        <Badge key={index} variant="outline" className="capitalize">
+                          🌱 {plant.replace("_", " ")}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No plants collected yet</p>
+                    )}
                   </div>
                 </div>
                 
                 <div>
                   <Label>Accessories Collected</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {user.inventory.accessories.length > 0 ? (
+                    {user?.inventory?.accessories && user.inventory.accessories.length > 0 ? (
                       user.inventory.accessories.map((accessory, index) => (
                         <Badge key={index} variant="outline" className="capitalize">
-                          ✨ {accessory.replace('_', ' ')}
+                          ✨ {accessory.replace("_", " ")}
                         </Badge>
                       ))
                     ) : (
