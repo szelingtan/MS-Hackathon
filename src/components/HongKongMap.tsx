@@ -890,23 +890,29 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             if (e.features && e.features.length > 0) {
               const feature = e.features[0] as Feature;
               const newHoverId = feature.id as string | number;
-              if (hoverId && hoverId !== newHoverId) {
+              if (hoverId !== null && hoverId !== newHoverId) {
                 map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
               }
               if (newHoverId !== hoverId) {
                 hoverId = newHoverId;
                 map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: true });
               }
-              map.current!.getCanvas().style.cursor = 'pointer'; // NEW
+              
+              map.current!.getCanvas().style.cursor = 'pointer';
             }
           });
 
           map.current!.on('mouseleave', 'hk-fill', () => {
+            // Ensure we clear hover state when mouse leaves
             if (hoverId !== null) {
-              map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
+              try {
+                map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
+              } catch (error) {
+                console.warn('Failed to clear hover state for feature:', hoverId, error);
+              }
               hoverId = null;
             }
-            map.current!.getCanvas().style.cursor = ''; // NEW
+            map.current!.getCanvas().style.cursor = '';
           });
 
           

@@ -9,7 +9,7 @@
         "title": "Center Construction Completed",
         "description": "Renovation and setup of classrooms and facilities finalized.",
         "impact": "Facility ready for use",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/classroom.png",
         "date": "2025-07-15"
       },
       {
@@ -17,7 +17,7 @@
         "title": "First Batch of Students Enrolled",
         "description": "Fifty students began attending after-school sessions.",
         "impact": "50 students supported",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/class.png",
         "date": "2025-08-21"
       }
     ]

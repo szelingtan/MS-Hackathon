@@ -8,7 +8,7 @@ import {
   Users, DollarSign, TrendingUp, Heart, UserPlus, Repeat, Share2, Target,
   MapPin, MessageCircle, Shield, LogOut, LayoutGrid, Activity, PieChart as PieIcon, Layers,
   LucideIcon,
-  Book
+  Book, Milestone
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import ImpactStoryFeed from '@/components/ImpactStoryFeed';
 import treeLogo from "@/assets/tree.png";
 import reachTogetherLogo from "@/assets/reachTogether.png";
+import ProjectsList from"@/components/ProjectList";
 import mockDonorsData from '@/data/donors.json';
 
 type TimeRangeKey = '3months' | '6months' | '1year';
@@ -27,11 +28,12 @@ type NavTab =
   | 'statusDistribution'
   | 'districts'
   | 'socialEngagement'
-  | 'impact';
+  | 'impact'
+  | 'impactStories'
+  | 'milestones';
 
-const RECENT_DONOR_COUNT = 10;
-
-interface Donor {
+  const RECENT_DONOR_COUNT = 10;
+  interface Donor {
   id: number;
   name: string;
   email: string;
@@ -507,16 +509,21 @@ const AdminDashboard = () => {
     <ImpactStoryFeed/>
   );
 
+  const ProjectsListCard = () => (
+    <ProjectsList/>
+  );
+
   // --- Navigation items ---
   const NAV_ITEMS: { key: NavTab; label: string; icon: LucideIcon }[] = [
     { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
     { key: 'donationTrends',     label: 'Donation Trends',        icon: Activity },
-    { key: 'donorGrowth',        label: 'Donor Trends',icon: Users },
+    { key: 'donorGrowth',        label: 'Donor Trends',           icon: Users },
     { key: 'statusDistribution', label: 'Donor Status Distribution',    icon: PieIcon },
-    { key: 'districts',          label: 'Amount by Districts',    icon: MapPin },
-    { key: 'socialEngagement',   label: 'Social Engagement',      icon: MessageCircle },
+    { key: 'districts',          label: 'District Analytics',    icon: MapPin },
+    { key: 'socialEngagement',   label: 'Socials',                icon: MessageCircle },
     { key: 'impact',             label: 'Impact Overview',        icon: Layers },
     { key: 'impactStories',      label: 'Impact Stories',         icon: Book },
+    { key: 'milestones',         label: 'Milestones',             icon: Milestone }
   ];
 
   return (
@@ -654,6 +661,7 @@ const AdminDashboard = () => {
         {navTab === 'socialEngagement' && <SocialEngagementCard />}
         {navTab === 'impact' && <ImpactCard />}
         {navTab === 'impactStories' && <ImpactStoriesCard />}
+        {navTab === 'milestones' && <ProjectsListCard />}
       </div>
     </div>
   );
