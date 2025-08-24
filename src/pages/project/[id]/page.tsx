@@ -220,7 +220,7 @@ return (
                     <img
                     src={milestone.image}
                     alt={milestone.title}
-                    className="w-full md:w-40 h-28 object-cover rounded-md flex-shrink-0"
+                    className="w-full md:w-28 h-53 object-cover rounded-md flex-shrink-0"
                     />
                     <div className="flex flex-col justify-between">
                     <h3 className="text-lg font-semibold">{milestone.title}</h3>
