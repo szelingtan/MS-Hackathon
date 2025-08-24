@@ -63,3 +63,18 @@ export interface PlantOutfit {
   bow?: string;
   special?: string;
 }
+
+export interface StoryInstance {
+  /** unique id for this placed polaroid on the canvas */
+  id: string;
+  /** which ImpactStory this instance points to */
+  storyId: number;
+  /** canvas position in px */
+  position: Position;
+  /** z-layer ordering (like plants/accessories) */
+  layer: number;
+  /** optional style controls */
+  rotation?: number;   // degrees (small tilt)
+  size?: number;       // scale, 1.0 = base size
+  isPlacementMode?: boolean;
+}

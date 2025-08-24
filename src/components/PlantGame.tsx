@@ -7,9 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { backgroundThemes } from "@/data/backgroundThemes";
 import { useGardenBackend } from "@/hooks/useGardenBackend";
 import { useGardenLayout } from "@/hooks/useGardenLayout";
-import { Accessory, Plant } from "@/types/garden";
 import { Droplets, Edit3, Eye, Flame, ShoppingCart, Sprout, Vote } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react"; // <-- already has useState; add useEffect
+import type { ImpactStory } from "@/components/garden/StoryDetailModal"; // from step 2
+import { Accessory, Plant, Position, StoryInstance } from "@/types/garden"; // add Position, StoryInstance
+
 
 interface PlantGameProps {
   userId?: string;
@@ -85,8 +87,15 @@ const PlantGame = ({ userId }: PlantGameProps) => {
   // Placement state management
   const [selectedAccessory, setSelectedAccessory] = useState<string | null>(null);
   const [selectedPlant, setSelectedPlant] = useState<string | null>(null);
-  const [placementMode, setPlacementMode] = useState<'plant' | 'accessory' | null>(null);
+  const [placementMode, setPlacementMode] = useState<'plant' | 'accessory' | 'story' | null>(null);
   const [targetPlant, setTargetPlant] = useState<string | null>(null);
+  const [impactStories, setImpactStories] = useState<ImpactStory[]>([]);
+  const [storyInstances, setStoryInstances] = useState<StoryInstance[]>([]);
+  const [selectedStoryId, setSelectedStoryId] = useState<number | null>(null);
+  const placeableStories = useMemo(
+    () => impactStories.filter(s => s.userDonated === true),
+    [impactStories]
+  );
 
   // Background theme management
   const [themeData, setThemeData] = useState(backgroundThemes);
@@ -168,6 +177,57 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     { id: "snow", name: "Snow Effect", emoji: "❄️", cost: 160, category: 'special', owned: backendOwnedAccessories.includes("snow") },
   ];
 
+  useEffect(() => {
+  (async () => {
+    try {
+      const res = await fetch('/hk-game/data/impact-stories.json');
+      if (!res.ok) return;
+      const raw = await res.json();
+
+      const pathPrefix = window.location.pathname.startsWith('/hk-game') ? '/hk-game' : '';
+      const normalized: ImpactStory[] = raw.map((s: any) => ({
+        ...s,
+        userDonated:
+          s.userDonated === true ||
+          s.userDonated === 'true' ||
+          Number(s.userDonated) === 1,
+          image: typeof s.image === 'string' && s.image.startsWith('/')
+             ? `${pathPrefix}${s.image}`
+            : s.image
+      }));
+
+      const filtered = normalized.filter(s => s.userDonated === true);
+      setImpactStories(filtered);
+    } catch (e) {
+      console.error('Failed to load impact stories', e);
+    }
+  })();
+}, []);
+
+
+  const onAddStory = (storyId: number, position: Position) => {
+    setStoryInstances(prev => [
+      ...prev,
+      {
+        id: (crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`),
+        storyId,
+        position,
+        layer: 25,                       // tune relative to plants/accessories
+        rotation: (Math.random() * 10 - 5),
+        size: 1,
+        isPlacementMode: true,           // shows “Click to place!”
+      }
+    ]);
+  };
+
+  const onStoryMove = (id: string, position: Position) =>
+    setStoryInstances(prev => prev.map(s => s.id === id ? ({ ...s, position }) : s));
+
+  const onStoryRemove = (id: string) =>
+    setStoryInstances(prev => prev.filter(s => s.id !== id));
+
+  const onStoryConfirmPlacement = (id: string) =>
+    setStoryInstances(prev => prev.map(s => s.id === id ? ({ ...s, isPlacementMode: false }) : s));
 
 
   const buyPlant = async (plantId: string, cost: number) => {
@@ -198,6 +258,16 @@ const PlantGame = ({ userId }: PlantGameProps) => {
       setSelectedPlant(null);
       setPlacementMode('accessory');
     }
+  };
+
+  const handleStoryPick = (storyId: number) => {
+    if (!editMode) return;
+    // toggle if same story tapped again
+    const toggledOff = (selectedStoryId === storyId && placementMode === 'story');
+    setSelectedStoryId(toggledOff ? null : storyId);
+    setSelectedPlant(null);
+    setSelectedAccessory(null);
+    setPlacementMode(toggledOff ? null : 'story');
   };
 
   // Handle plant selection for placement
@@ -275,6 +345,7 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     removeAccessory(accessoryId);
     //console.log('After removal, accessories:', gardenLayout.accessories.filter(a => a.id !== accessoryId).map(a => a.id));
   };
+  
 
 
 
@@ -395,6 +466,13 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                 onAccessoryRemove={removeAccessory}
                 onAccessoryConfirmPlacement={confirmAccessoryPlacement}
                 onAddAccessory={addAccessory}
+                impactStories={placeableStories}
+                storyInstances={storyInstances}
+                selectedStoryId={selectedStoryId}
+                onAddStory={onAddStory}
+                onStoryMove={onStoryMove}
+                onStoryRemove={onStoryRemove}
+                onStoryConfirmPlacement={onStoryConfirmPlacement}
               />
 
               {/* Edit Mode Instructions */}
@@ -409,24 +487,26 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                     <li>• <strong>Switch to View Mode</strong> when done editing</li>
                   </ul>
                   {/* Show which item is currently selected */}
-                  {(selectedAccessory || selectedPlant) && (
+                  {(selectedAccessory || selectedPlant || selectedStoryId != null) ? (
                     <div className="mt-3 p-2 bg-yellow-100 rounded border border-yellow-300">
                       <p className="text-sm text-yellow-800 font-medium">
-                        ✨ {placementMode === 'accessory' 
-                          ? `${accessories.find(a => a.id === selectedAccessory)?.name} selected!` 
-                          : `${plants.find(p => p.id === selectedPlant)?.name} selected!`
+                        ✨ {
+                          placementMode === 'accessory'
+                            ? `${accessories.find(a => a.id === selectedAccessory)?.name} selected!`
+                            : placementMode === 'plant'
+                              ? `${plants.find(p => p.id === selectedPlant)?.name} selected!`
+                              : `Story: ${placeableStories.find(s => s.id === selectedStoryId)?.title} selected!`
                         } Click in the garden to place it.
                       </p>
                     </div>
-                  )}
-                  {/* Show instruction when nothing is selected */}
-                  {!selectedAccessory && !selectedPlant && (
+                  ) : (
                     <div className="mt-3 p-2 bg-gray-100 rounded border border-gray-300">
                       <p className="text-sm text-gray-600">
-                        Select a plant or accessory from the palette below to start placing items.
+                        Select a plant, accessory, or impact story to start placing items.
                       </p>
                     </div>
                   )}
+
                 </div>
               )}
 
@@ -440,6 +520,35 @@ const PlantGame = ({ userId }: PlantGameProps) => {
                 onPlantClick={handlePlantClick}
                 onAccessoryClick={handleAccessoryClick}
               />
+
+              {editMode && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-semibold mb-2">📸 Impact Story Polaroids</h4>
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {placeableStories.map(story => (
+                      <button
+                        key={story.id}
+                        onClick={() => handleStoryPick(story.id)}
+                        className={`shrink-0 rounded-md border p-2 bg-white hover:shadow transition
+                          ${selectedStoryId === story.id && placementMode === 'story' ? 'ring-2 ring-yellow-400' : ''}`}
+                        title={story.title}
+                      >
+                        <div className="relative w-20 p-2 bg-white rounded-sm">
+                          <div className="overflow-hidden rounded-sm bg-black/5" style={{ width: 64, height: 64 * 16 / 9 }}>
+                            <img src={story.image} alt={story.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="mt-1 text-[10px] text-center line-clamp-1">{story.title}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select a polaroid, then click in the garden to place it.
+                  </p>
+                </div>
+              )}
+
+
             </TabsContent>
 
             <TabsContent value="themes" className="p-0 pt-4">

@@ -36,7 +36,7 @@
     "description": "The renovated science laboratory in Southern district now has modern equipment for hands-on learning.",
     "impact": "300 students benefit",
     "date": "5 days ago",
-    "image": "/api/placeholder/300/200",
+    "image": "/images/milestones/lab.png",
     "userDonated": true
   },
   {
@@ -96,7 +96,7 @@
     "description": "Community book drive has added 500 new books to the local school library.",
     "impact": "500+ new books",
     "date": "3 weeks ago",
-    "image": "/api/placeholder/300/200",
+    "image": "/images/milestones/books.png",
     "userDonated": true
   },
   {
