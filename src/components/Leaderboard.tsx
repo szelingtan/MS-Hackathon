@@ -18,40 +18,35 @@ import {
     Zap
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import donorsData from "@/data/donors.json";
 
-// Mock data for districts and their plants
-const districts = [
-    {
-        id: "district-1",
-        name: "District 1 - Sunnydale Elementary",
-        color: "text-plant-growth",
-        donors: [
-            { id: 1, name: "Sarah Johnson", plantLevel: 3, plantType: "Flowering Tree", votes: 24, totalDonated: 450 },
-            { id: 2, name: "Mike Chen", plantLevel: 2, plantType: "Young Sprout", votes: 18, totalDonated: 320 },
-            { id: 3, name: "Emma Wilson", plantLevel: 3, plantType: "Blooming Rose", votes: 31, totalDonated: 678 }
-        ]
-    },
-    {
-        id: "district-2",
-        name: "District 2 - Riverside Community",
-        color: "text-water",
-        donors: [
-            { id: 4, name: "David Brown", plantLevel: 1, plantType: "Tiny Seedling", votes: 12, totalDonated: 234 },
-            { id: 5, name: "Lisa Garcia", plantLevel: 3, plantType: "Oak Sapling", votes: 28, totalDonated: 892 },
-            { id: 6, name: "James Wilson", plantLevel: 2, plantType: "Pine Tree", votes: 22, totalDonated: 567 }
-        ]
-    },
-    {
-        id: "district-3",
-        name: "District 3 - Green Valley",
-        color: "text-earth",
-        donors: [
-            { id: 7, name: "Maria Rodriguez", plantLevel: 2, plantType: "Bamboo Grove", votes: 19, totalDonated: 445 },
-            { id: 8, name: "John Kim", plantLevel: 1, plantType: "Herb Garden", votes: 15, totalDonated: 278 },
-            { id: 9, name: "Anna Chen", plantLevel: 3, plantType: "Cherry Blossom", votes: 26, totalDonated: 623 }
-        ]
-    }
-];
+// Group donors by region and create district structure
+const createDistricts = (donors) => {
+    const regionGroups = donors.reduce((acc, donor) => {
+        const region = donor.region || "Unknown Region";
+        if (!acc[region]) {
+            acc[region] = [];
+        }
+        acc[region].push({
+            id: donor.id,
+            name: donor.name,
+            plantLevel: donor.plantLevel || 1,
+            plantType: donor.plantType || "Unknown Plant",
+            votes: donor.votes || 0,
+            totalDonated: donor.totalDonated || 0
+        });
+        return acc;
+    }, {});
+
+    // Convert to districts array with colors
+    const colors = ["text-plant-growth", "text-water", "text-earth", "text-accent"];
+    return Object.entries(regionGroups).map(([region, donors], index) => ({
+        id: `district-${index + 1}`,
+        name: `${region}`,
+        color: colors[index % colors.length],
+        donors: donors
+    }));
+};
 
 // Motivational quotes
 const quotes = [
@@ -66,7 +61,14 @@ const Leaderboard = () => {
     const [selectedTab, setSelectedTab] = useState("voting");
     const [votedDonors, setVotedDonors] = useState(new Set());
     const [currentQuote, setCurrentQuote] = useState(quotes[0]);
+    const [districts, setDistricts] = useState([]);
     const { user } = useAuth();
+
+    // Initialize districts from JSON data
+    useEffect(() => {
+        const districtData = createDistricts(donorsData);
+        setDistricts(districtData);
+    }, []);
 
     // Rotate quotes every 10 seconds
     useEffect(() => {
@@ -128,6 +130,19 @@ const Leaderboard = () => {
             default: return <span className="text-lg font-bold text-muted-foreground">#{rank}</span>;
         }
     };
+
+    // Show loading state while districts are being created
+    if (districts.length === 0) {
+        return (
+            <div className="space-y-6">
+                <Card className="shadow-soft">
+                    <CardContent className="pt-6">
+                        <p className="text-center text-muted-foreground">Loading leaderboard...</p>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

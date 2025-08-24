@@ -21,13 +21,13 @@ interface CreatePostProps {
     content: string;
     impact: string;
     file?: File | null;
-    district: string | null;        // <— changed from schoolId
+    district: string | null;
   }) => void;
   triggerText?: string;
   triggerClassName?: string;
 }
 
-// District list from your JSON
+// District list
 const DISTRICTS = [
   'Central & Western','Wan Chai','Eastern','Southern','Yau Tsim Mong','Sham Shui Po',
   'Kowloon City','Wong Tai Sin','Kwun Tong','Tsuen Wan','Tuen Mun','Yuen Long',
