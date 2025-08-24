@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import donorsData from "@/data/donors.json";
 import { useAuth } from "@/hooks/use-auth";
 import {
     Award,
@@ -17,8 +18,7 @@ import {
     Trophy,
     Zap
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import donorsData from "@/data/donors.json";
+import { useEffect, useMemo, useState } from "react";
 
 // Group donors by region and create district structure
 const createDistricts = (donors) => {
@@ -46,6 +46,13 @@ const createDistricts = (donors) => {
         color: colors[index % colors.length],
         donors: donors
     }));
+};
+
+const districtMap = {
+  1: "Hong Kong Island",
+  2: "Kowloon",
+  3: "New Territories",
+  4: "Outlying Islands"
 };
 
 // Motivational quotes
@@ -78,24 +85,67 @@ const Leaderboard = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Create user data object with current user info
     const userData = {
-        id: 1,
+        id: user?.user_id || 'current-user',
         name: user?.name || "Guest",
         totalDonated: user?.donated_amount || 0,
-        rank: 3,
-        district: "district-1"
+        district: districtMap[user.district_id as keyof typeof districtMap]
     };
 
-    // Get all donors for overall leaderboard
-    const allDonors = districts.flatMap(district =>
-        district.donors.map(donor => ({
-            ...donor,
-            district: district.name,
-            districtColor: district.color
-        }))
-    ).sort((a, b) => b.totalDonated - a.totalDonated);
+    // Get all donors for overall leaderboard and include current user
+    const allDonorsWithUser = useMemo(() => {
+        const donorsFromData = districts.flatMap(district =>
+            district.donors.map(donor => ({
+                ...donor,
+                district: district.name,
+                districtColor: district.color,
+                isCurrentUser: false
+            }))
+        );
 
-    const topDonors = allDonors.sort((a, b) => b.votes - a.votes);
+        // Add current user to the list if they have donations
+        if (userData.totalDonated > 0) {
+            donorsFromData.push({
+                ...userData,
+                plantLevel: 2, // Default plant level for user
+                plantType: "Your Garden",
+                votes: 0,
+                districtColor: "text-plant-growth",
+                isCurrentUser: true
+            });
+        }
+
+        // Sort by donation amount
+        return donorsFromData.sort((a, b) => b.totalDonated - a.totalDonated);
+    }, [districts, userData]);
+
+    // Find user's rank in the leaderboard
+    const userRank = useMemo(() => {
+        const userIndex = allDonorsWithUser.findIndex(donor => donor.isCurrentUser);
+        return userIndex !== -1 ? userIndex + 1 : null;
+    }, [allDonorsWithUser]);
+
+    // Check if user should be in top 5
+    const userInTop5 = userRank && userRank <= 5;
+
+    // Get display list for top donors - either top 5 or top 4 + user
+    const topDonorsDisplay = useMemo(() => {
+        if (userInTop5) {
+            // User is in top 5, show normal top 5
+            return allDonorsWithUser.slice(0, 5);
+        } else if (userRank) {
+            // User is not in top 5, show top 4 + user
+            const top4 = allDonorsWithUser.slice(0, 4);
+            const currentUser = allDonorsWithUser.find(donor => donor.isCurrentUser);
+            return currentUser ? [...top4, currentUser] : top4;
+        } else {
+            // User has no donations, show normal top 5
+            return allDonorsWithUser.slice(0, 5);
+        }
+    }, [allDonorsWithUser, userInTop5, userRank]);
+
+    const topDonors = allDonorsWithUser.sort((a, b) => b.votes - a.votes);
 
     const handleVote = (donorId) => {
         if (!votedDonors.has(donorId)) {
@@ -129,6 +179,14 @@ const Leaderboard = () => {
             case 3: return <Award className="h-6 w-6 text-yellow-600" />;
             default: return <span className="text-lg font-bold text-muted-foreground">#{rank}</span>;
         }
+    };
+
+    // Get the display rank for each donor in the top donors display
+    const getDisplayRank = (donor, index) => {
+        if (donor.isCurrentUser && !userInTop5) {
+            return userRank; // Show actual rank for user when not in top 5
+        }
+        return index + 1; // Show position in top 5 list
     };
 
     // Show loading state while districts are being created
@@ -279,28 +337,57 @@ const Leaderboard = () => {
                                     <Trophy className="h-6 w-6 text-accent" />
                                     Top Donors by Amount
                                 </CardTitle>
+                                {!userInTop5 && userRank && (
+                                    <CardDescription>
+                                        Showing top 4 donors and your position (#{userRank})
+                                    </CardDescription>
+                                )}
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {allDonors.slice(0, 5).map((donor, index) => (
-                                    <div key={donor.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="flex items-center justify-center w-8 h-8">
-                                                {getRankIcon(index + 1)}
+                                {topDonorsDisplay.map((donor, index) => {
+                                    const displayRank = getDisplayRank(donor, index);
+                                    const isCurrentUser = donor.isCurrentUser;
+                                    
+                                    return (
+                                        <div 
+                                            key={donor.id} 
+                                            className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                                                isCurrentUser 
+                                                    ? 'bg-gradient-to-r from-blue-100 to-green-100 border-2 border-plant-growth shadow-md' 
+                                                    : 'bg-muted/30'
+                                            }`}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="flex items-center justify-center w-8 h-8">
+                                                    {getRankIcon(displayRank)}
+                                                </div>
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.name}`} />
+                                                    <AvatarFallback>{donor.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p className={`font-medium ${isCurrentUser ? 'text-plant-growth' : ''}`}>
+                                                        {donor.name}
+                                                        {isCurrentUser && <span className="text-sm font-normal text-muted-foreground ml-2">(You)</span>}
+                                                    </p>
+                                                    <p className={`text-sm ${donor.districtColor}`}>{donor.district}</p>
+                                                </div>
                                             </div>
-                                            <Avatar className="h-10 w-10">
-                                                <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${donor.name}`} />
-                                                <AvatarFallback>{donor.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-medium">{donor.name}</p>
-                                                <p className={`text-sm ${donor.districtColor}`}>{donor.district}</p>
+                                            <div className="text-right">
+                                                <p className={`font-bold ${isCurrentUser ? 'text-plant-growth text-lg' : 'text-plant-growth'}`}>
+                                                    ${donor.totalDonated}
+                                                </p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-plant-growth">${donor.totalDonated}</p>
-                                        </div>
+                                    );
+                                })}
+                                
+                                {/* Show gap indicator when user is not in top 5 */}
+                                {!userInTop5 && userRank && userRank > 5 && (
+                                    <div className="text-center py-2 text-sm text-muted-foreground border-t border-dashed">
+                                        ... {userRank - 5} other donors ...
                                     </div>
-                                ))}
+                                )}
                             </CardContent>
                         </Card>
 
@@ -351,7 +438,9 @@ const Leaderboard = () => {
                                 {/* Donation Standing */}
                                 <div className="flex items-center space-x-4 p-4 bg-plant-growth/10 rounded-lg">
                                     <div className="flex items-center justify-center w-12 h-12 bg-plant-growth/20 rounded-full">
-                                        <span className="text-xl font-bold text-plant-growth">#{userData.rank}</span>
+                                        <span className="text-xl font-bold text-plant-growth">
+                                            {userRank ? `#${userRank}` : 'N/A'}
+                                        </span>
                                     </div>
                                     <div>
                                         <p className="text-lg font-semibold">{userData.name}</p>
