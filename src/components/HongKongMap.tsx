@@ -882,23 +882,29 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             if (e.features && e.features.length > 0) {
               const feature = e.features[0] as Feature;
               const newHoverId = feature.id as string | number;
-              if (hoverId && hoverId !== newHoverId) {
+              if (hoverId !== null && hoverId !== newHoverId) {
                 map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
               }
               if (newHoverId !== hoverId) {
                 hoverId = newHoverId;
                 map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: true });
               }
-              map.current!.getCanvas().style.cursor = 'pointer'; // NEW
+              
+              map.current!.getCanvas().style.cursor = 'pointer';
             }
           });
 
           map.current!.on('mouseleave', 'hk-fill', () => {
+            // Ensure we clear hover state when mouse leaves
             if (hoverId !== null) {
-              map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
+              try {
+                map.current!.setFeatureState({ source: 'hk', id: hoverId }, { hover: false });
+              } catch (error) {
+                console.warn('Failed to clear hover state for feature:', hoverId, error);
+              }
               hoverId = null;
             }
-            map.current!.getCanvas().style.cursor = ''; // NEW
+            map.current!.getCanvas().style.cursor = '';
           });
 
           map.current!.on('click', 'hk-fill', (e: MapEvent) => {
@@ -915,16 +921,18 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
                 feature.properties.NAME ||
                 feature.properties.CNAME ||
                 'Unknown District';
-              
-              handleDistrictClick(String(districtName));
-              
-              // clear previous selection
-              if (selectedFeatureId.current) {
+
+              const normalizedDistrictName = String(districtName).trim();
+    
+              handleDistrictClick(normalizedDistrictName);
+              if (selectedFeatureId.current !== null) {
                 map.current!.setFeatureState({ source: 'hk', id: selectedFeatureId.current }, { selected: false });
               }
-              // new selection
-              selectedFeatureId.current = feature.id as string | number;
-              map.current!.setFeatureState({ source: 'hk', id: feature.id }, { selected: true });
+              
+
+              const featureId = feature.id as string | number;
+              selectedFeatureId.current = featureId;
+              map.current!.setFeatureState({ source: 'hk', id: featureId }, { selected: true });
 
               // Slight zoom into the clicked district + dim outside
               try {
