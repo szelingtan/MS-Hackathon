@@ -23,9 +23,7 @@ import mockDonorsData from '@/data/donors.json';
 type TimeRangeKey = '3months' | '6months' | '1year';
 type NavTab =
   | 'overview'
-  | 'donationTrends'
-  | 'donorGrowth'
-  | 'statusDistribution'
+  | 'donorAnalytics'
   | 'districts'
   | 'socialEngagement'
   | 'impact'
@@ -68,6 +66,37 @@ const AdminDashboard = () => {
   const totalRaised = mockDonors.reduce((sum, d) => sum + d.totalDonated, 0);
   const activeDonors = mockDonors.filter(d => d.status === "Active").length;
   const premiumDonors = mockDonors.filter(d => d.status === "Premium").length;
+
+  // Calculate donation frequency per donor (random mock for illustration)
+  const donorDonationFrequencies = mockDonors.map(donor => {
+    const frequency = Math.floor(Math.random() * 10); 
+    return {
+      name: donor.name,
+      donations: frequency
+    };
+  });
+  // Frequency distribution (how many donors donated 1x, 2x, ..., 5+ times)
+  const frequencyBuckets = {
+    '1': 0,
+    '2': 0,
+    '3': 0,
+    '4': 0,
+    '5+': 0,
+  };
+
+  donorDonationFrequencies.forEach(({ donations }) => {
+    if (donations >= 5) {
+      frequencyBuckets['5+'] += 1;
+    } else if (donations >= 1) {
+      frequencyBuckets[donations.toString()] += 1;
+    }
+  });
+  const donationFrequencyChartData = Object.entries(frequencyBuckets).map(
+  ([label, count]) => ({
+    frequency: label,
+    donors: count,
+  })
+);
 
   // --- Time-series data ---
   const dataByPeriod: Record<TimeRangeKey, {
@@ -513,12 +542,43 @@ const AdminDashboard = () => {
     <ProjectsList/>
   );
 
+  const DonationFrequencyCard = () => (
+    <Card className="shadow-soft">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Repeat className="w-5 h-5 mr-2 text-plant-growth" />
+          Donor Frequency Distribution (Last 3 Months)
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer width="100%" height={320}>
+          <BarChart data={donationFrequencyChartData} margin={{ top: 20, right: 20, bottom: 40, left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+            <XAxis
+              dataKey="frequency"
+              label={{ value: 'Donations per Donor', position: 'insideBottom', offset: -5 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <YAxis stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+              }}
+            />
+            <Bar dataKey="donors" fill="#8ab371" name="Donors" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+);
+
+
   // --- Navigation items ---
   const NAV_ITEMS: { key: NavTab; label: string; icon: LucideIcon }[] = [
     { key: 'overview',           label: 'Overview',               icon: LayoutGrid },
-    { key: 'donationTrends',     label: 'Donation Trends',        icon: Activity },
-    { key: 'donorGrowth',        label: 'Donor Trends',           icon: Users },
-    { key: 'statusDistribution', label: 'Donor Status Distribution',    icon: PieIcon },
+    { key: 'donorAnalytics',     label: 'Donor Analytics',        icon: Activity },
     { key: 'districts',          label: 'District Analytics',    icon: MapPin },
     { key: 'socialEngagement',   label: 'Socials',                icon: MessageCircle },
     { key: 'impact',             label: 'Impact Overview',        icon: Layers },
@@ -654,9 +714,14 @@ const AdminDashboard = () => {
           </>
         )}
 
-        {navTab === 'donationTrends' && <DonationTrendsCard />}
-        {navTab === 'donorGrowth' && <DonorGrowthCard />}
-        {navTab === 'statusDistribution' && <StatusDistributionCard />}
+        {navTab === 'donorAnalytics' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DonationTrendsCard />
+            <DonorGrowthCard />
+            <StatusDistributionCard />
+            <DonationFrequencyCard />
+          </div>
+        )}
         {navTab === 'districts' && <AmountByDistrictCard />}
         {navTab === 'socialEngagement' && <SocialEngagementCard />}
         {navTab === 'impact' && <ImpactCard />}
@@ -668,3 +733,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
