@@ -32,7 +32,7 @@
         "title": "Laptops Distributed",
         "description": "20 refurbished laptops were distributed to students.",
         "impact": "20 students equipped",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/laptops.png",
         "date": "2025-08-01"
       },
       {
@@ -40,7 +40,7 @@
         "title": "Coding Workshops Launched",
         "description": "Weekend coding classes launched in the community center.",
         "impact": "Skills training in progress",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/coding.png",
         "date": "2025-08-15"
       }
     ]
@@ -55,16 +55,8 @@
         "title": "Meal Plan Finalized",
         "description": "Balanced meal menu approved by nutritionist.",
         "impact": "Improved meal quality",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/meal.png",
         "date": "2025-07-10"
-      },
-      {
-        "id": "mile-3-2",
-        "title": "Meal Service Started",
-        "description": "Program started delivering breakfast and lunch to 40 students.",
-        "impact": "40 students fed daily",
-        "image": "/api/placeholder/300/200",
-        "date": "2025-08-20"
       }
     ]
   },
@@ -78,16 +70,8 @@
         "title": "Lab Equipment Purchased",
         "description": "Modern lab tools and safety equipment acquired.",
         "impact": "Lab ready for experiments",
-        "image": "/api/placeholder/300/200",
+        "image": "/images/milestones/lab.png",
         "date": "2025-07-30"
-      },
-      {
-        "id": "mile-4-2",
-        "title": "First Science Session Held",
-        "description": "Students conducted first hands-on science experiment.",
-        "impact": "STEM engagement increased",
-        "image": "/api/placeholder/300/200",
-        "date": "2025-08-18"
       }
     ]
   },
