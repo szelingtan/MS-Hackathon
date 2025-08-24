@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// import { Progress } from "@/components/ui/progress"; // CHANGED: we render a custom bar to overlay "your" portion
+// import { Progress } from "@/components/ui/progress"; // CHANGED: render a custom bar to overlay "your" portion
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Users, MapPin, DollarSign, Clock, Target, Filter, Droplets, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -599,12 +599,12 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
   const [projects, setProjects] = useState<DonationProject[]>([]);
 
   // NEW: track "your" donations for overlay (local only)
-  const [myDonations, setMyDonations] = useState<Record<number, number>>({}); // projectId -> amount
+  const [myDonations, setMyDonations] = useState<Record<number, number>>({});
 
   // Donation dialog state (kept minimal)
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   
-  const { user, processDonation } = useAuth(); // CHANGED: do not call processDonation here (donations aren't via Firestore)
+  const { user, processDonation } = useAuth(); 
 
   useEffect(() => { setMyDonations(loadMyDonations()); }, []);
 
@@ -727,7 +727,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
     }
   };
 
-  // NEW: attempt server persistence; no-op if endpoint is absent
+  // Attempt server persistence; no-op if endpoint is absent
   const persistDonation = async (projectId: number, amount: number) => {
     try {
       // 1) append to donations log JSON
@@ -875,7 +875,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             }
           });
 
-          // interactions (CHANGED + NEW zoom/mask)
+          // interactions
           let hoverId: string | number | null = null;
 
           map.current!.on('mousemove', 'hk-fill', (e: MapEvent) => {
@@ -926,7 +926,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
               selectedFeatureId.current = feature.id as string | number;
               map.current!.setFeatureState({ source: 'hk', id: feature.id }, { selected: true });
 
-              // NEW: slight zoom into the clicked district + dim outside
+              // Slight zoom into the clicked district + dim outside
               try {
                 const bbox = window.turf.bbox(feature);
                 map.current!.fitBounds(bbox, { padding: 50, duration: 1000 });
@@ -937,7 +937,7 @@ const HongKongMap = ({ height = 500, onDonationUpdate, onProjectDonate, initialS
             }
           });
 
-          // NEW: click on empty map clears selection (like first code)
+          // Click on empty map clears selection
           map.current!.on('click', (e: MapEvent) => {
             const feats = map.current!.queryRenderedFeatures(e.point, { layers: ['hk-fill'] });
             if (feats.length === 0 && selectedFeatureId.current !== null) {

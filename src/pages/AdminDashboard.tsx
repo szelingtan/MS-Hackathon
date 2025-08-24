@@ -249,7 +249,6 @@ const AdminDashboard = () => {
     { metric: 'Partner Schools', value: 12, growth: 33.3 }
   ];
 
-  // ...existing code...
   const KPICard = ({ title, value, subtitle, icon: Icon, trend, colorClass = "text-plant-growth" }:{
     title: string; value: string; subtitle?: string; icon: LucideIcon; trend?: number; colorClass?: string;
   }) => (

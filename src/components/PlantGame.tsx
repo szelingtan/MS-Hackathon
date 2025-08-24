@@ -230,14 +230,14 @@ const PlantGame = ({ userId }: PlantGameProps) => {
     let newAccessories = [...plant.accessories];
     
     if (accessory.category === 'hats' || accessory.category === 'glasses' || accessory.category === 'pots' || accessory.category === 'bows') {
-      // Single accessory categories - replace existing
+      // Single accessory categories
       newAccessories = newAccessories.filter(accId => {
         const existingAcc = accessories.find(a => a.id === accId);
         return existingAcc?.category !== accessory.category;
       });
       newAccessories.push(selectedAccessory);
     } else if (accessory.category === 'jewelry' || accessory.category === 'special') {
-      // Multiple accessory categories - add if not already present
+      // Multiple accessory categories
       if (!newAccessories.includes(selectedAccessory)) {
         newAccessories.push(selectedAccessory);
       }
